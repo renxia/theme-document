@@ -1,7 +1,7 @@
 /*
 * @author 友人a丶
 * @date 2022-08-12
-* 
+*
 * */
 
 
@@ -340,12 +340,21 @@ $(function ($) {
     (function () {
 
         $('.icp-beian div').click(function () {
+            const isNice = $('.icp-beian div').index(this) == 0;
+            const storInfo = JSON.parse(localStorage.getItem('wp_document_stor') || '{}');
+            if (!storInfo.ding) storInfo.ding = { nice: {}, bad: {} };
 
             /*
             * 判断点赞的是哪一个
             * */
-            if ($('.icp-beian div').index(this) == 0) {
+            if (isNice) {
                 /* 点赞  */
+                if (!storInfo.ding.nice) storInfo.ding.nice = {};
+                if (storInfo.ding.nice[Current]) {
+                    return;
+                }
+
+                storInfo.ding.nice[Current] = true;
                 let that = $(this);
                 $.post("/?document_nice=" + Current, function () {
                     that.find('span').text(parseInt(that.find('span').text()) + 1);
@@ -353,6 +362,12 @@ $(function ($) {
             } else {
                 /* 踩 */
                 let that = $(this);
+                if (!storInfo.ding.bad) storInfo.ding.bad = {};
+                if (storInfo.ding.nice[Current]) {
+                    return;
+                }
+
+                storInfo.ding.nice[Current] = true;
                 $.post("/?document_bad=" + Current, function () {
                     that.find('span').text(parseInt(that.find('span').text()) + 1);
                 });
