@@ -703,19 +703,22 @@ html {
                 width: 100%; }
             html body .main-container #fixed .main-right .author .statistic {
               display: flex;
+              flex-wrap: wrap;
               justify-content: space-between;
-              margin-top: 10px; }
+              margin-top: 5px; }
               html body .main-container #fixed .main-right .author .statistic .item {
                 display: flex;
                 align-items: center;
                 flex-direction: column;
+                margin-top: 5px;
                 width: 33.3%; }
                 html body .main-container #fixed .main-right .author .statistic .item .top {
                   font-size: var(--theme-text-mini);
                   white-space: nowrap; }
                 html body .main-container #fixed .main-right .author .statistic .item .bottom {
                   color: var(--theme-black-text);
-                  font-size: 1.1rem; }
+                  font-weight: bold;
+                  font-size: 0.8rem; }
             html body .main-container #fixed .main-right .author .offset {
               position: relative;
               padding: 0.45rem 0.5rem 1rem 0.5rem; }

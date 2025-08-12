@@ -11,6 +11,7 @@
  * @life，加油
  * */
 include_once get_template_directory() . '/include/config.php'; //加载一些通用方法
+include_once get_template_directory() . '/include/functions/lzwme.php'; //加载一些通用方法
 include_once get_template_directory() . '/include/functions/common.php'; //加载一些通用方法
 include_once get_template_directory() . '/include/response/response.php'; //处理前端ajax请求
 include_once get_template_directory() . '/include/themes/theme.php'; //主题钩子

@@ -28,6 +28,7 @@ class Author extends WP_Widget {
 		$profession  = $this->getValue( $instance, 'profession', 'PHPer' ); //职业描述
 		$beijin      = $this->getValue( $instance, 'beijin', '/wp-content/themes/nicen_theme/assets/images/bg.jpg' ); //作者卡片背景
 		$description = $this->getValue( $instance, 'description', '前端、PHPer，做更好的自己。' ); //文章数量
+		$createdate  = $this->getValue( $instance, 'site_create_date', '2008-06-28' ); // 建站日期
 
 		include get_template_directory() . '/template/widget/author.php';//最新文章
 
@@ -101,6 +102,13 @@ class Author extends WP_Widget {
 			'type'    => 'text',
 			'field'   => 'beijin',
 			'default' => get_template_directory_uri() . '/assets/images/bg.jpg',
+		] );
+
+		widget_media( $this, $instance, [
+			'title'   => '建站日期',
+			'type'    => 'text',
+			'field'   => 'site_create_date',
+			'default' => '2018-06-28',
 		] );
 
 		?>

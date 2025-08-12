@@ -86,15 +86,15 @@ global $table_prefix, $wpdb;
 					 * */
 					if ( is_single() && ! empty( $category ) ) {
 
-						$sql = 'select a.post_id,a.meta_value 
-                                                from `' . $table_prefix . 'postmeta` As a join `' . $table_prefix . 'term_relationships` as b on a.post_id = b.object_id 
-                                                where a.meta_key = "post_views_count" and b.term_taxonomy_id in (' . join( ',', $category ) . ') order by a.meta_value+0 DESC limit ' . $number;
+						$sql = 'select a.post_id,a.meta_value
+                                                from `' . $table_prefix . 'postmeta` As a join `' . $table_prefix . 'term_relationships` as b on a.post_id = b.object_id
+                                                where a.meta_key = "views" and b.term_taxonomy_id in (' . join( ',', $category ) . ') order by a.meta_value+0 DESC limit ' . $number;
 
 					} else {
 
-						$sql = 'select a.post_id,a.meta_value 
-                                                from `' . $table_prefix . 'postmeta` As a join `' . $table_prefix . 'term_relationships` as b on a.post_id = b.object_id 
-                                                where a.meta_key = "post_views_count" order by a.meta_value+0 DESC limit ' . $number;
+						$sql = 'select a.post_id,a.meta_value
+                                                from `' . $table_prefix . 'postmeta` As a join `' . $table_prefix . 'term_relationships` as b on a.post_id = b.object_id
+                                                where a.meta_key = "views" order by a.meta_value+0 DESC limit ' . $number;
 
 					}
 
@@ -154,7 +154,7 @@ global $table_prefix, $wpdb;
                             <span>暂无可推荐内容</span>
                       </div>';
 		} else {
-			echo '         
+			echo '
                     <div class="swiper-button-next"></div>
                     <div class="swiper-button-prev"></div>';
 		}

@@ -36,7 +36,7 @@ global $table_prefix, $wpdb;
 				/*
 				 * 获取浏览量最高的文章
 				 * */
-				$sql    = 'select `post_id`,`meta_value` from `' . $table_prefix . 'postmeta` where `meta_key` = "post_views_count" order by `meta_value`+0 DESC limit ' . $number;
+				$sql    = 'select `post_id`,`meta_value` from `' . $table_prefix . 'postmeta` where `meta_key` = "views" order by `meta_value`+0 DESC limit ' . $number;
 				$result = $wpdb->get_results( $sql, ARRAY_A );
 
 
@@ -69,10 +69,10 @@ global $table_prefix, $wpdb;
                     <div class="article">
                         <div class="caption">
                         ' . get_the_title() . '
-                        </div> 
+                        </div>
                         <div class="datetime">
                         ' . nicen_theme_timeToString( get_the_time( "Y-m-d H:i:s" ) ) . '
-                        </div> 
+                        </div>
                     </div>
                 </a>
             </li>';

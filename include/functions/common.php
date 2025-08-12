@@ -57,16 +57,18 @@ nicen_theme_reload(); //加载主题选项，获取主题需要的选项数据
 /*文章浏览次数+1*/
 function nicen_theme_setPostViews( $postID ) {
 
-	$count_key = 'post_views_count';
+	$count_key = 'views'; // 'post_views_count';
 	$count     = get_post_meta( $postID, $count_key, true );
 	if ( $count == '' ) {
-		$count = 0;
+		$count = 1;
 		delete_post_meta( $postID, $count_key );
 		add_post_meta( $postID, $count_key, '1' );
 	} else {
 		$count ++;
 		update_post_meta( $postID, $count_key, $count );
 	}
+
+	return $count;
 }
 
 
@@ -75,7 +77,7 @@ function nicen_theme_setPostViews( $postID ) {
  */
 function nicen_theme_getPostViews( $postID ) {
 
-	$count_key = 'post_views_count';
+	$count_key = 'views'; // 'post_views_count';
 	$count     = get_post_meta( $postID, $count_key, true );
 	if ( $count == '' ) {
 		delete_post_meta( $postID, $count_key );

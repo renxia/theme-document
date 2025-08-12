@@ -839,6 +839,8 @@ define( "CONFIG", [
 	//主题logo
 	'document_header_border_color'   => '#e1e1e1',
 	'document_header_shadow_color'   => 'hsl(230deg 68% 14% / 1%)',
+
+	'document_site_create_date' 			 => '2018-06-28', // 建站日期
 ] );
 
 
