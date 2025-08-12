@@ -341,7 +341,9 @@ $(function ($) {
 
         $('.icp-beian div').click(function () {
             const isNice = $('.icp-beian div').index(this) == 0;
-            const storInfo = JSON.parse(localStorage.getItem('wp_document_stor') || '{}');
+
+            const sotrKey = 'wp_document_stor';
+            const storInfo = JSON.parse(localStorage.getItem(sotrKey) || '{}');
             if (!storInfo.ding) storInfo.ding = { nice: {}, bad: {} };
 
             /*
@@ -373,6 +375,7 @@ $(function ($) {
                 });
             }
 
+            localStorage.setItem(sotrKey, JSON.stringify(storInfo));
         });
     })();
 
