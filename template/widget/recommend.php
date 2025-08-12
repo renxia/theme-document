@@ -148,7 +148,7 @@ global $table_prefix, $wpdb;
 		<?php
 
 		if ( $count == 0 ) {
-			$url = get_template_directory_uri() . "/assets/images/nothing.svg"; //主题url
+			$url = get_cdn_uri() . "/assets/images/nothing.svg"; //主题url
 			echo '<div class="empty">
                             <img src="' . $url . '" title="暂无相关文章" />
                             <span>暂无可推荐内容</span>

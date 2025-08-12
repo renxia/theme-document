@@ -111,6 +111,14 @@ const ADMIN = [
 						]
 					],
 					[
+						'id'       => 'document_cdn_uri',
+						'title'    => '静态资源 CDN 前缀',
+						'callback' => 'nicen_theme_form_input',
+						'args'     => [
+							'tip' => '为空则不使用 CDN。如 https://cdn.jsdmirror.com/gh/friend-nicen/theme-document@master',
+						],
+					],
+					[
 						'id'       => 'document_catelog_mode',
 						'title'    => '文章目录解析模式',
 						'callback' => 'nicen_theme_form_select',
@@ -840,7 +848,7 @@ define( "CONFIG", [
 	'document_header_border_color'   => '#e1e1e1',
 	'document_header_shadow_color'   => 'hsl(230deg 68% 14% / 1%)',
 
-	'document_site_create_date' 			 => '2018-06-28', // 建站日期
+	'document_cdn_uri'  			 => '', // gh cdn uri
 ] );
 
 
