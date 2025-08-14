@@ -38,7 +38,7 @@ if ( nicen_theme_showComments() ) {
 
 		?>
 
-        <div class="div-info">
+        <div class="div-info" id="comment">
             <div class="header">
                 <ul>
                     <li class="active"><div class="mark"></div>评论区</li>

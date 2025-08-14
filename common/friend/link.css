@@ -1,0 +1,82 @@
+/**
+ * page-links
+ */
+
+.main-content h1 {
+    text-align: center;
+    font-weight: bold;
+}
+
+.link-search {
+    margin: 20px auto;
+    position: relative;
+}
+
+.link-search i {
+    position: absolute;
+    right: 16px;
+    top: 6px;
+    font-size: 16px;
+    opacity: 0.5;
+}
+
+.link-search:hover i {
+    opacity: 1;
+}
+
+.link-search input {
+    color: var(--theme-header-font-color);
+    outline: none;
+    background-color: transparent;
+    border-radius: 40px;
+    padding-left: 20px;
+    width: 100%;
+    min-height: 40px;
+}
+
+.link-search input:focus {
+    box-shadow: 0 0 5px 2px var(--theme-color-20);
+    border-color: var(--theme-color);
+}
+
+.link-list {
+    list-style: none;
+}
+
+/**
+ * linkcat
+ */
+
+.linkcat .blogroll {
+    padding-left: 0;
+}
+
+.linkcat .blogroll li {
+    display: inline-block;
+    margin-right: 5px;
+    margin-bottom: 8px;
+    padding: 3px 8px;
+    border: 1px #f2f2f2 solid;
+    border-left: 5px #39f solid;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+@media screen and (min-width: 1000px) {
+    .linkcat .blogroll li {
+        min-width: max(200px, 24%);
+    }
+}
+
+.linkcat .blogroll li:hover {
+    border-color: green;
+    transform: scale(1.2);
+    background: #fff;
+}
+
+.linkcat a:focus {
+    outline: #337ab7;
+    border: 1px solid #39f;
+    padding: 5px;
+    border-radius: 5px;
+}

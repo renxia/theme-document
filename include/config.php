@@ -115,7 +115,7 @@ const ADMIN = [
 						'title'    => '静态资源 CDN 前缀',
 						'callback' => 'nicen_theme_form_input',
 						'args'     => [
-							'tip' => '为空则不使用 CDN。如 https://cdn.jsdmirror.com/gh/friend-nicen/theme-document@master',
+							'tip' => '为空则不使用 CDN。如 https://fastly.jsdelivr.net/gh/friend-nicen/theme-document@master',
 						],
 					],
 					[
@@ -767,6 +767,7 @@ define( "CONFIG", [
 	'document_thumbnail_default'  => get_theme_root_uri() . '/destination/assets/images/default.png',
 	"document_Gravatar"           => 'gravatar.loli.net/avatar',
 	//默认替换的gavatar源
+	'document_cdn_uri'  	      => '',
 	"document_theme_color"        => '#3eaf7c',
 	"document_show_copyright"     => 1,
 	//主题色
@@ -847,8 +848,6 @@ define( "CONFIG", [
 	//主题logo
 	'document_header_border_color'   => '#e1e1e1',
 	'document_header_shadow_color'   => 'hsl(230deg 68% 14% / 1%)',
-
-	'document_cdn_uri'  			 => '', // gh cdn uri
 ] );
 
 
@@ -888,6 +887,17 @@ const PAGES = [
 			/*依赖的脚本*/
 			'scripts' => [
 				'/common/friend/friend.js'
+			]
+		]
+	],
+	'友情链接list'   => [
+		'template' => 'template/page/link.php',
+		'dependent' => [
+			'styles'  => [
+				'/common/friend/link.css'
+			],
+			'scripts' => [
+				'/common/friend/link.js'
 			]
 		]
 	],

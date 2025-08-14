@@ -7,8 +7,8 @@
  * */
 
 
-$next     = get_next_post();//下一篇文章
-$previous = get_previous_post();//上一篇
+// $next     = get_next_post();//下一篇文章
+// $previous = get_previous_post();//上一篇
 ?>
 
 <footer>
