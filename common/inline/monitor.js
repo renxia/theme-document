@@ -338,9 +338,9 @@ $(function ($) {
     * 文章踩、文章点赞
     * */
     (function () {
-
-        $('.icp-beian div').click(function () {
-            const isNice = $('.icp-beian div').index(this) == 0;
+        $('.post-zan,.post-cai').click(function() {
+            let that = $(this);
+            const isNice = $(this).hasClass('post-zan');
 
             const sotrKey = 'wp_document_stor';
             const storInfo = JSON.parse(localStorage.getItem(sotrKey) || '{}');
@@ -357,13 +357,11 @@ $(function ($) {
                 }
 
                 storInfo.ding.nice[Current] = true;
-                let that = $(this);
                 $.post("/?document_nice=" + Current, function () {
                     that.find('span').text(parseInt(that.find('span').text()) + 1);
                 });
             } else {
                 /* 踩 */
-                let that = $(this);
                 if (!storInfo.ding.bad) storInfo.ding.bad = {};
                 if (storInfo.ding.nice[Current]) {
                     return;

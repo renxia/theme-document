@@ -7,8 +7,8 @@
  * */
 
 
-// $next     = get_next_post();//下一篇文章
-// $previous = get_previous_post();//上一篇
+$next     = get_next_post();//下一篇文章
+$previous = get_previous_post();//上一篇
 ?>
 
 <footer>
@@ -21,14 +21,26 @@
 				<?php echo get_copyright(); ?>
             </div>
 		<?php } ?>
-        <!--赞赏-->
-		<?php if ( nicen_theme_config( "document_show_donate", false ) ) { ?>
-            <div class="donate">
-                <a href="<?php nicen_theme_config( 'document_donate_url' ); ?>">
-                    <button>赞赏</button>
-                </a>
-            </div>
-		<?php } ?>
+		<div class="flex-center">
+			<div class="post-zan-cai">
+				<div class="post-zan">
+					<span class="number"><?php echo nicen_theme_getPostNice( get_the_ID() ); ?></span>
+					<img src="<?php echo get_cdn_uri(); ?>/assets/images/zan.svg" title="点赞"/>
+				</div>
+				<div class="post-cai">
+					<span class="number"><?php echo nicen_theme_getPostBad( get_the_ID() ); ?></span>
+					<img src="<?php echo get_cdn_uri(); ?>/assets/images/cai.svg" title="踩"/>
+				</div>
+				<!--赞赏-->
+				<?php if ( nicen_theme_config( "document_show_donate", false ) ) { ?>
+					<div class="donate flex-center">
+						<a href="<?php nicen_theme_config( 'document_donate_url' ); ?>">
+							<button>赞赏</button>
+						</a>
+					</div>
+				<?php } ?>
+			</div>
+		</div>
         <!--标签-->
         <div class="label">
             <i class="iconfont icon-biaoqian"></i>

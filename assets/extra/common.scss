@@ -112,3 +112,15 @@ p {
   text-overflow: ellipsis;
   overflow: hidden;
 }
+
+/**
+  * 其他样式
+  */
+.hide {
+  display: none !important;
+}
+
+.flex-center {
+  @include flex-center;
+  justify-content: center;
+}
