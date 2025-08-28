@@ -338,42 +338,26 @@ $(function ($) {
     * 文章踩、文章点赞
     * */
     (function () {
-        $('.post-zan,.post-cai').click(function() {
-            let that = $(this);
-            const isNice = $(this).hasClass('post-zan');
+        $('.post-nice,.post-bad').click(function() {
+            const that = $(this);
+            const dingKey = $(this).hasClass('post-nice') ? 'nice' : 'bad';
 
             const sotrKey = 'wp_document_stor';
             const storInfo = JSON.parse(localStorage.getItem(sotrKey) || '{}');
             if (!storInfo.ding) storInfo.ding = { nice: {}, bad: {} };
 
-            /*
-            * 判断点赞的是哪一个
-            * */
-            if (isNice) {
-                /* 点赞  */
-                if (!storInfo.ding.nice) storInfo.ding.nice = {};
-                if (storInfo.ding.nice[Current]) {
-                    return;
-                }
-
-                storInfo.ding.nice[Current] = true;
-                $.post("/?document_nice=" + Current, function () {
-                    that.find('span').text(parseInt(that.find('span').text()) + 1);
-                });
-            } else {
-                /* 踩 */
-                if (!storInfo.ding.bad) storInfo.ding.bad = {};
-                if (storInfo.ding.nice[Current]) {
-                    return;
-                }
-
-                storInfo.ding.nice[Current] = true;
-                $.post("/?document_bad=" + Current, function () {
-                    that.find('span').text(parseInt(that.find('span').text()) + 1);
-                });
+            if (!storInfo.ding[dingKey]) storInfo.ding[dingKey] = {};
+            if (storInfo.ding[dingKey][Current]) {
+                window.toast && toast(`您已经点过${dingKey === 'nice' ? '赞': '踩'}了`, { icon: 'warning' });
+                return;
             }
 
-            localStorage.setItem(sotrKey, JSON.stringify(storInfo));
+            storInfo.ding[dingKey][Current] = true;
+            $.post(`/?document_${dingKey}=${Current}`, function () {
+                $(`.post-${dingKey} span`).text(parseInt(that.find('span').text()) + 1);
+                localStorage.setItem(sotrKey, JSON.stringify(storInfo));
+                window.toast && toast(`感谢您的支持~`);
+            });
         });
     })();
 

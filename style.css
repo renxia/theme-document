@@ -1103,7 +1103,7 @@ html body .main-container #space #navigator .icp-beian {
   padding: 0.25rem 1rem 0.5rem 1rem;
   justify-content: center;
 }
-html body .main-container .post-zan-cai {
+html body .main-container .post-ding {
   display: flex;
   width: 100%;
   font-size: var(--theme-text-more-mini);
@@ -1111,8 +1111,8 @@ html body .main-container .post-zan-cai {
   justify-content: center;
   margin-top: 1.5rem;
 }
-html body .main-container .post-zan-cai .post-zan,
-html body .main-container .post-zan-cai .post-cai {
+html body .main-container .post-ding .post-nice,
+html body .main-container .post-ding .post-bad {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1126,13 +1126,13 @@ html body .main-container .post-zan-cai .post-cai {
   border-radius: 50%;
   margin: 0 1rem;
 }
-html body .main-container .post-zan-cai .post-zan:hover, html body .main-container .post-zan-cai .post-zan:active,
-html body .main-container .post-zan-cai .post-cai:hover,
-html body .main-container .post-zan-cai .post-cai:active {
+html body .main-container .post-ding .post-nice:hover, html body .main-container .post-ding .post-nice:active,
+html body .main-container .post-ding .post-bad:hover,
+html body .main-container .post-ding .post-bad:active {
   background-color: var(--theme-color);
 }
-html body .main-container .post-zan-cai .post-zan .number,
-html body .main-container .post-zan-cai .post-cai .number {
+html body .main-container .post-ding .post-nice .number,
+html body .main-container .post-ding .post-bad .number {
   position: absolute;
   top: -0.5rem;
   right: -0.5rem;
@@ -1147,14 +1147,14 @@ html body .main-container .post-zan-cai .post-cai .number {
   background-color: var(--theme-code-bg);
   white-space: nowrap;
 }
-html body .main-container .post-zan-cai .post-zan img,
-html body .main-container .post-zan-cai .post-cai img {
+html body .main-container .post-ding .post-nice img,
+html body .main-container .post-ding .post-bad img {
   width: 100%;
 }
-html body .main-container .post-zan-cai .donate {
+html body .main-container .post-ding .donate {
   margin-left: 1rem;
 }
-html body .main-container .post-zan-cai .donate button {
+html body .main-container .post-ding .donate button {
   margin-top: 0 !important;
 }
 html body .main-container .div-info {

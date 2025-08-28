@@ -35,12 +35,15 @@ function toggleTheme(flag = true) {
 /*
 * 动态rem
 * */
-let l = () => {
-    let r = document.documentElement, o = r.offsetWidth / 100;
-    o < 17 && (o = 17), r.style.fontSize = o + "px", window.rem = o
+let calcRem = () => {
+    const r = document.documentElement;
+    let o = r.offsetWidth / 100;
+    o = Math.min(Math.max(o, 17), 22); // 17 ~ 22
+    r.style.fontSize = o + "px";
+    window.rem = o;
 };
-window.onresize = l;
-l();
+window.addEventListener('resize', calcRem);
+calcRem();
 
 /*同步主题*/
 let theme = localStorage.getItem('theme-color');
@@ -85,3 +88,8 @@ $.fn.removeWithLeakage = function () {
             e.parentNode.removeChild(e);
     });
 };
+
+/** toast */
+function toast(msg, options = {}) {
+    if (window.h5Utils) window.h5Utils.toast(msg, options);
+}

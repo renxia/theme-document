@@ -32,12 +32,12 @@ if ( nicen_theme_showCatelog() ) {
                     </ul>
                 </div>
 
-                <div class="icp-beian post-zan-cai">
-                    <div class="post-zan">
+                <div class="icp-beian post-ding">
+                    <div class="post-nice">
                         <span class="number"><?php echo nicen_theme_getPostNice( get_the_ID() ); ?></span>
                         <img src="<?php echo get_cdn_uri(); ?>/assets/images/zan.svg" title="点赞"/>
                     </div>
-                    <div class="post-cai">
+                    <div class="post-bad">
                         <span class="number"><?php echo nicen_theme_getPostBad( get_the_ID() ); ?></span>
                         <img src="<?php echo get_cdn_uri(); ?>/assets/images/cai.svg" title="踩"/>
                     </div>

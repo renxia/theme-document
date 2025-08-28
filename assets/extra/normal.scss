@@ -849,7 +849,7 @@ html {
         }
       }
 
-      .post-zan-cai {
+      .post-ding {
           display: flex;
           width: 100%;
           font-size: var(--theme-text-more-mini);
@@ -857,8 +857,8 @@ html {
           justify-content: center;
           margin-top: 1.5rem;
 
-          .post-zan,
-          .post-cai {
+          .post-nice,
+          .post-bad {
             display: flex;
             justify-content: center;
             align-items: center;

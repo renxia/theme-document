@@ -95,7 +95,7 @@ function nicen_theme_getPostViews( $postID ) {
  */
 function nicen_theme_setPostNice( $postID ) {
 
-	$count_key = 'love'; // 'post_nice_count';
+	$count_key = nicen_theme_config('document_post_nice_field', false) ?? 'post_nice_count';
 	$count     = get_post_meta( $postID, $count_key, true );
 	if ( $count == '' ) {
 		$count = 0;
@@ -113,7 +113,7 @@ function nicen_theme_setPostNice( $postID ) {
  */
 function nicen_theme_getPostNice( $postID ) {
 
-	$count_key = 'love'; // 'post_nice_count';
+	$count_key = nicen_theme_config('document_post_nice_field', false) ?? 'post_nice_count';
 	$count     = get_post_meta( $postID, $count_key, true );
 	if ( $count == '' ) {
 		delete_post_meta( $postID, $count_key );
@@ -131,7 +131,7 @@ function nicen_theme_getPostNice( $postID ) {
  */
 function nicen_theme_setPostBad( $postID ) {
 
-	$count_key = 'post_bad_count';
+	$count_key = nicen_theme_config('document_post_bad_field', false) ?? 'post_bad_count';
 	$count     = get_post_meta( $postID, $count_key, true );
 	if ( $count == '' ) {
 		$count = 0;
@@ -149,7 +149,7 @@ function nicen_theme_setPostBad( $postID ) {
  */
 function nicen_theme_getPostBad( $postID ) {
 
-	$count_key = 'post_bad_count';
+	$count_key = nicen_theme_config('document_post_bad_field', false) ?? 'post_bad_count';
 	$count     = get_post_meta( $postID, $count_key, true );
 	if ( $count == '' ) {
 		delete_post_meta( $postID, $count_key );
