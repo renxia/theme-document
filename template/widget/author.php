@@ -16,9 +16,10 @@
     /*
  * 获取总浏览量
  * */
-    $sql    = 'select sum(`meta_value`+0) As views from `' . $table_prefix . 'postmeta` where `meta_key` = "views"';
+    $views_field = nicen_theme_config('document_post_views_field', false) ?? 'post_views_count';
+    $sql    = 'select sum(`meta_value`+0) As views from `' . $table_prefix . 'postmeta` where `meta_key` = "' . $views_field . '"';
     $result = $wpdb->get_results($sql, ARRAY_A);
-    $views  = $result[0]['views']; //总阅读数
+    $views  = $result[0][$views_field]; //总阅读数
 
     $comment = count(get_comments()); //评论总数
 

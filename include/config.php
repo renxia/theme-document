@@ -207,6 +207,11 @@ const ADMIN = [
 						]
 					],
 					[
+						'id'       => 'document_post_views_field',
+						'title'    => '文章阅读量字段名称',
+						'callback' => 'nicen_theme_form_input',
+					],
+					[
 						'id'       => 'document_post_nice_field',
 						'title'    => '点赞字段名称',
 						'callback' => 'nicen_theme_form_input',
@@ -785,9 +790,11 @@ define( "CONFIG", [
 	//显示搜索数量
 	'document_view_add'           => 0,
 	//阅读量增加
-	'document_post_nice_field'		=> 'post_nice_count',
+	'document_post_views_field'   => 'post_views_count',
+	//文章阅读量字段名称
+	'document_post_nice_field'    => 'post_nice_count',
 	//文章点赞字段名称
-	'document_post_bad_field'		=> 'post_bad_count',
+	'document_post_bad_field'    => 'post_bad_count',
 	//文章点踩字段名称
 	'document_switch_theme'       => 1,
 	//主题色切换
