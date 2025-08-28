@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "css": "node style-build.cjs"
+  },
+  "dependencies": {
+    "sass": "^1.91.0"
+  }
+}
