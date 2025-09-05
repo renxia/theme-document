@@ -340,23 +340,21 @@ $(function ($) {
     (function () {
         $('.post-nice,.post-bad').click(function() {
             const that = $(this);
-            const dingKey = $(this).hasClass('post-nice') ? 'nice' : 'bad';
+            const dingType = $(this).hasClass('post-nice') ? 'nice' : 'bad';
+            const skey = `ding.${dingType}.${Current}`;
 
-            const sotrKey = 'wp_document_stor';
-            const storInfo = JSON.parse(localStorage.getItem(sotrKey) || '{}');
-            if (!storInfo.ding) storInfo.ding = { nice: {}, bad: {} };
-
-            if (!storInfo.ding[dingKey]) storInfo.ding[dingKey] = {};
-            if (storInfo.ding[dingKey][Current]) {
-                window.toast && toast(`您已经点过${dingKey === 'nice' ? '赞': '踩'}了`, { icon: 'warning' });
+            if (tdStorage.getItem(skey)) {
+                window.toast && toast(`您已经点过${dingType === 'nice' ? '赞': '踩'}了`, { icon: 'warning' });
                 return;
             }
 
-            storInfo.ding[dingKey][Current] = true;
-            $.post(`/?document_${dingKey}=${Current}`, function () {
-                $(`.post-${dingKey} span`).text(parseInt(that.find('span').text()) + 1);
-                localStorage.setItem(sotrKey, JSON.stringify(storInfo));
+            tdStorage.setItem(skey, true);
+            $.post(`/?document_${dingType}=${Current}`).then((res) => {
+                $(`.post-${dingType} span`).text(res.count || parseInt(that.find('span').text()) + 1);
                 window.toast && toast(`感谢您的支持~`);
+            }).catch((err) => {
+                tdStorage.removeItem(skey);
+                window.toast && toast(`${err.message}`, { icon: 'error' });
             });
         });
     })();

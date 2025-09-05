@@ -33,9 +33,10 @@ function nicen_theme_auth() {
  * */
 if ( isset( $_GET['document_nice'] ) ) {
 	if ( is_numeric( $_GET['document_nice'] ) ) {
-		nicen_theme_setPostNice( $_GET['document_nice'] );
+		$count = nicen_theme_setPostNice( $_GET['document_nice'] );
 
 		exit( json_encode( [
+			'count'  => $count,
 			'code'   => 1,
 			'errMsg' => "点赞成功！"
 		] ) );

@@ -105,6 +105,8 @@ function nicen_theme_setPostNice( $postID ) {
 		$count ++;
 		update_post_meta( $postID, $count_key, $count );
 	}
+
+	return get_post_meta( $postID, $count_key, true );
 }
 
 

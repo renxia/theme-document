@@ -1,3 +1,49 @@
+const tdStorKey = 'wp_document_stor';
+const tdStorage = {
+    get key() { return tdStorKey },
+    cache: JSON.parse(localStorage.getItem(tdStorKey) || '{}'),
+    save() {
+        localStorage.setItem(this.key, JSON.stringify(this.cache));
+    },
+    getItem(key) {
+        if (!key) return;
+        return key.split('.').reduce((acc, cur) => acc == undefined ? acc : acc[cur], this.cache);
+    },
+    setItem(key, value) {
+        if (!key) return;
+        if (typeof key === 'object') {
+            this.cache = key;
+        } else {
+            key.split('.').reduce((acc, cur, index, arr) => {
+                if (index === arr.length - 1) {
+                    acc[cur] = value;
+                } else {
+                    if (typeof acc[cur] != 'object') acc[cur] = {};
+                    return acc[cur];
+                }
+            }, this.cache);
+        }
+
+        this.save();
+    },
+    removeItem(key) {
+        let ok = false;
+        if (!key) return ok;
+        key.split('.').reduce((acc, cur, index, arr) => {
+            if (acc && index === arr.length - 1) {
+                ok = true;
+                delete acc[cur];
+            } else if (acc) {
+                return acc[cur];
+            }
+        }, this.cache);
+
+        if (ok) this.save();
+        return ok;
+    }
+};
+
+
 /*
 * 切换主题皮肤
 * */
