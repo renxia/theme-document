@@ -13,3 +13,21 @@ if (window._ts) {
         });
     }
 }
+
+if (window.TD && window.ROOT) {
+  /** 更新阅读时间 */
+  function updateReadingTime() {
+    const $readTime = $('.read-time-info');
+    if (!$readTime.length) return;
+
+    const text = $('.main-article').text();
+    if (!text.length) return;
+
+    TD.loadJsOrCss(`${window.ROOT}/common/reading-time/reading-time.js`).then(() => {
+      const { words, minutes } = readingTime(text.trim(), { wordsPerMinute: 200 });
+      $readTime.html(`<i class="iconfont icon-icon-test"></i>字数 ${words}，阅读大约需 ${minutes} 分钟`);
+    });
+  }
+
+  updateReadingTime();
+}
