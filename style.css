@@ -1172,11 +1172,11 @@ html body .main-container .div-info {
 html body .main-container .div-info * {
   color: inherit;
 }
-html body .main-container .div-info .ul {
+html body .main-container .div-info .ul, html body .main-container .div-info ul {
   white-space: nowrap;
   font-size: var(--theme-secondary);
 }
-html body .main-container .div-info .ul li {
+html body .main-container .div-info .ul li, html body .main-container .div-info ul li {
   white-space: nowrap;
   font-size: var(--theme-secondary);
 }
@@ -1189,6 +1189,15 @@ html body .main-container .div-info .ul {
   display: flex;
   list-style: none;
   flex-direction: column;
+}
+html body .main-container .div-info .widget_links ul li {
+  list-style: cjk-earthly-branch;
+}
+html body .main-container .div-info .widget_links ul li a {
+  text-decoration: none;
+}
+html body .main-container .div-info .widget_links ul li a:hover {
+  color: var(--theme-color);
 }
 html body .main-container .div-info .title, html body .main-container .div-info .comment-widget {
   width: 100%;

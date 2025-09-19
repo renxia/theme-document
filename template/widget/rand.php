@@ -64,7 +64,7 @@ global $table_prefix, $wpdb;
 				echo '<li>
                 <a href="' . get_the_permalink() . '" title="' . get_the_title() . '" target="_blank">
                      <div class="thumnbnail">
-                        <img loading="lazy" src="' . nicen_theme_getThumb() . '" alt="' . get_the_title() . '" />
+                        <img loading="lazy" src="' . nicen_get_img_timthumb(null, 78, 56) . '" alt="' . get_the_title() . '" />
                     </div>
                     <div class="article">
                         <div class="caption">

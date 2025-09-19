@@ -1,3 +1,5 @@
+./cache
+./timthumb-config.php
 .idea/
 node_modules/
 yarn.lock

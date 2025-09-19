@@ -32,7 +32,7 @@ function nicen_theme_add_sidebar()
     unregister_widget('WP_Widget_Archives');          //年份文章归档
     unregister_widget('WP_Widget_Calendar');          //日历
     unregister_widget('WP_Widget_Categories');        //分类列表
-    unregister_widget('WP_Widget_Links');             //链接
+    // unregister_widget('WP_Widget_Links');             //链接
     unregister_widget('WP_Widget_Media_Audio');       //音乐
     unregister_widget('WP_Widget_Media_Video');       //视频
     unregister_widget('WP_Widget_Media_Gallery');     //相册

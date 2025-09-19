@@ -922,7 +922,7 @@ html {
           color: inherit;
         }
 
-        .ul {
+        .ul,ul {
           white-space: nowrap;
           font-size: var(--theme-secondary);
 
@@ -942,6 +942,18 @@ html {
           display: flex;
           list-style: none;
           flex-direction: column;
+        }
+
+        .widget_links  ul li {
+            list-style: cjk-earthly-branch;
+
+            a {
+              text-decoration: none;
+
+              &:hover {
+                color: var(--theme-color);
+              }
+            }
         }
 
         .title, .comment-widget {

@@ -948,6 +948,43 @@ function nicen_theme_getThumbnail() {
 }
 
 
+/**
+ * 获取指定图片的缩略图链接
+ */
+function nicen_get_img_timthumb($src, $width, $height, $args = array())
+{
+	if (empty($src)) {
+		$src = nicen_theme_getThumb();
+	}
+
+    if ($width == null || $height == null) {
+        return $src;
+    }
+
+	// 支持伪静态
+    if (nicen_theme_config('document_thumbnail_rewrite', false)) {
+        return home_url() . "/timthumb/w_{$width}/h_{$height}/q_90/zc_1/a_c/" . safe_base64_encode($src) . ".png";
+    }
+
+    return get_template_directory_uri() . "/timthumb.php?w={$width}&h={$height}&a=c&zc=1&q=90&src=" . $src;
+}
+
+function safe_base64_encode($string)
+{
+    $data = base64_encode($string);
+    return str_replace(array('+', '/', '='), array('-', '_', ''), $data);
+}
+
+function safe_base64_decode($string){
+    $data = str_replace(array('-','_'),array('+','/'),$string);
+    $mod4 = strlen($data) % 4;
+    if ($mod4) {
+        $data .= substr('====', $mod4);
+    }
+    return base64_decode($data);
+}
+
+
 /*
  * 首页或栏目是否显示文章导航
  * */

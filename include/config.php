@@ -191,6 +191,14 @@ const ADMIN = [
 						'callback' => 'nicen_theme_form_media',
 					],
 					[
+						'id'       => 'document_thumbnail_rewrite',
+						'title'    => '是否启用缩略图伪静态',
+						'callback' => 'nicen_theme_form_switch',
+						'args'     => [
+							'tip' => "若开启此选项，请自行手动在Nginx配置中添加伪静态规则：<code>rewrite ^/timthumb/w_([0-9]+)/h_([0-9]+)/q_([0-9]+)/zc_([0-9])/a_([a-z]+)/([0-9A-Za-z_\-]+)\.([0-9a-z]+)$ /wp-content/themes/theme-document/timthumb.php?w=$1&h=$2&q=$3&zc=$4&a=$5&src=$6;</code>"
+						]
+					],
+					[
 						'id'       => 'document_publish_show',
 						'title'    => '文章发布多少天后显示日期',
 						'callback' => 'nicen_theme_form_number',
@@ -780,6 +788,7 @@ define( "CONFIG", [
 	'document_thumbnail'          => 1,
 	"document_thumbnail_position" => "right",
 	'document_thumbnail_default'  => get_theme_root_uri() . '/destination/assets/images/default.png',
+	'document_thumbnail_rewrite'  => 0, // 是否启用缩略图伪静态
 	"document_Gravatar"           => 'gravatar.loli.net/avatar',
 	//默认替换的gavatar源
 	'document_cdn_uri'  	      => '',

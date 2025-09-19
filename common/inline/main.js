@@ -123,15 +123,28 @@ const TD = {
 
     return Promise.allSettled(list);
   },
+  /** 更新适配系统自带小工具的样式 */
+  updateWidgetStyle() {
+    $('aside .widget').each(function () {
+      if ($(this).hasClass('div-info')) return;
+
+      $(this).addClass('div-info').css('display', 'block');
+      const title = $(this).find('h2').hide().text();
+      $(this).prepend(`<div class="header"><ul><li class="active"><div class="mark"></div>${title}</li></ul></div>`);
+    });
+  },
+  onReady() {
+    if (window.h5Utils && h5Utils.config) Object.assign(TD.config.cdn, h5Utils.config.cdn);
+    this.updateWidgetStyle();
+  },
   async init() {
-    // onReady
     $(function () {
-        if (window.h5Utils && h5Utils.config) {
-            Object.assign(TD.config.cdn, h5Utils.config.cdn);
-        }
+        TD.onReady();
     })();
   }
 };
+
+TD.init();
 
 /*
  * 切换主题皮肤
@@ -217,5 +230,5 @@ $.fn.removeWithLeakage = function () {
 
 /** toast */
 function toast(msg, options = {}) {
-  if (window.h5Utils) window.h5Utils.toast(msg, options);
+  TD.toast(msg, options);
 }
