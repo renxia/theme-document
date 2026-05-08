@@ -141,6 +141,12 @@ if(! isset($ALLOWED_SITES)){
 		'tinypic.com',
 	);
 }
+
+if (!isset($BLOCK_KEYWORDS)) {
+    // --- 关键词过滤：返回占位图 ---
+    $BLOCK_KEYWORDS = ['.aspx', '.php', 'download.asp'];
+}
+
 // -------------------------------------------------------------
 // -------------- STOP EDITING CONFIGURATION HERE --------------
 // -------------------------------------------------------------
@@ -238,6 +244,27 @@ class timthumb
             $this->error("No image specified");
             return false;
         }
+
+        // ---- 关键词过滤 ----
+        global $BLOCK_KEYWORDS;
+        $srcLower      = strtolower($this->src);
+        foreach ($BLOCK_KEYWORDS as $kw) {
+            if (strpos($srcLower, $kw) !== false) {
+                $this->debug(1, "Blocked keyword '$kw' found in src: " . $this->src);
+                // 返回 1x1 透明占位图（GIF）
+                $placeholder = base64_decode("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7");
+                header('Content-Type: image/gif');
+                header('Content-Length: ' . strlen($placeholder));
+                $expireTime = 60 * 60 * 24 * 30; // 30天
+                header('Cache-Control: public, max-age=' . $expireTime);
+                header('Expires: ' . gmdate('D, d M Y H:i:s', time() + $expireTime) . ' GMT');
+                header('Pragma: cache');
+                echo $placeholder;
+                exit(0);
+            }
+        }
+        // --- 过滤结束 ---
+
         if (BLOCK_EXTERNAL_LEECHERS && array_key_exists('HTTP_REFERER', $_SERVER) && (!preg_match('/^https?:\/\/(?:www\.)?' . $this->myHost . '(?:$|\/)/i', $_SERVER['HTTP_REFERER']))) {
             // base64 encoded red image that says 'no hotlinkers'
             // nothing to worry about! :)
