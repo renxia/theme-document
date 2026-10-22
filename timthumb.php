@@ -216,7 +216,8 @@ class timthumb
         $this->debug(3, "Salt is: " . $this->salt);
         if (FILE_CACHE_DIRECTORY) {
             if (!is_dir(FILE_CACHE_DIRECTORY)) {
-                @mkdir(FILE_CACHE_DIRECTORY);
+                // 缓存目录可能是多级的（如 ./cache/thumbnail），需要递归创建
+                @mkdir(FILE_CACHE_DIRECTORY, 0755, true);
                 if (!is_dir(FILE_CACHE_DIRECTORY)) {
                     $this->error("Could not create the file cache directory.");
                     return false;
@@ -907,27 +908,38 @@ class timthumb
 
     protected function calcDocRoot()
     {
-        $docRoot = @$_SERVER['DOCUMENT_ROOT'];
+        // 依次尝试：手动指定 > DOCUMENT_ROOT > SCRIPT_FILENAME 推算 > PATH_TRANSLATED 推算 > 主题目录层级推算
+        $candidates = array();
         if (defined('LOCAL_FILE_BASE_DIRECTORY')) {
-            $docRoot = LOCAL_FILE_BASE_DIRECTORY;
+            $candidates[] = LOCAL_FILE_BASE_DIRECTORY;
         }
-        if (!isset($docRoot)) {
-            $this->debug(3, "DOCUMENT_ROOT is not set. This is probably windows. Starting search 1.");
-            if (isset($_SERVER['SCRIPT_FILENAME'])) {
-                $docRoot = str_replace('\\', '/', substr($_SERVER['SCRIPT_FILENAME'], 0, 0 - strlen($_SERVER['PHP_SELF'])));
-                $this->debug(3, "Generated docRoot using SCRIPT_FILENAME and PHP_SELF as: $docRoot");
+        $candidates[] = @$_SERVER['DOCUMENT_ROOT'];
+        if (isset($_SERVER['SCRIPT_FILENAME'], $_SERVER['PHP_SELF']) && strlen($_SERVER['PHP_SELF']) > 0) {
+            $candidates[] = substr(str_replace('\\', '/', $_SERVER['SCRIPT_FILENAME']), 0, 0 - strlen($_SERVER['PHP_SELF']));
+        }
+        if (isset($_SERVER['PATH_TRANSLATED'], $_SERVER['PHP_SELF']) && strlen($_SERVER['PHP_SELF']) > 0) {
+            $candidates[] = substr(str_replace('\\\\', '\\', $_SERVER['PATH_TRANSLATED']), 0, 0 - strlen($_SERVER['PHP_SELF']));
+        }
+        // 部分 PHP-FPM / 反向代理环境不传 DOCUMENT_ROOT，此时按 wp-content/themes/<theme>/timthumb.php 反推站点根目录
+        $candidates[] = dirname(__FILE__, 4);
+
+        $docRoot = '';
+        foreach ($candidates as $path) {
+            if (!is_string($path)) {
+                continue;
             }
-        }
-        if (!isset($docRoot)) {
-            $this->debug(3, "DOCUMENT_ROOT still is not set. Starting search 2.");
-            if (isset($_SERVER['PATH_TRANSLATED'])) {
-                $docRoot = str_replace('\\', '/', substr(str_replace('\\\\', '\\', $_SERVER['PATH_TRANSLATED']), 0, 0 - strlen($_SERVER['PHP_SELF'])));
-                $this->debug(3, "Generated docRoot using PATH_TRANSLATED and PHP_SELF as: $docRoot");
+            $path = rtrim(str_replace('\\', '/', $path), '/');
+            // 跳过空值与根目录：以 '/' 作为 docRoot 会让后续所有路径探测都越界
+            if ($path === '') {
+                continue;
             }
+            if (is_dir($path)) {
+                $docRoot = $path;
+                break;
+            }
+            $this->debug(3, "Candidate doc root is not a directory: " . $path);
         }
-        if ($docRoot && $_SERVER['DOCUMENT_ROOT'] != '/') {
-            $docRoot = preg_replace('/\/$/', '', $docRoot);
-        }
+
         $this->debug(3, "Doc root is: " . $docRoot);
         $this->docRoot = $docRoot;
 
@@ -935,70 +947,51 @@ class timthumb
 
     protected function getLocalImagePath($src)
     {
+        $src = str_replace('\\', '/', $src);
         $src = ltrim($src, '/'); //strip off the leading '/'
+
+        // 拒绝空值、空字节与目录穿越：这类 src 必然找不到文件，继续探测只会对站点根目录之外的路径做文件操作，
+        // 在 open_basedir 环境下每次都刷出 PHP Warning（file_exists 告警）
+        if ($src === '' || strpos($src, "\0") !== false || preg_match('#(^|/)\.\.(/|$)#', $src)) {
+            $this->debug(1, "Rejected invalid src: " . $src);
+            return false;
+        }
+
         if (!$this->docRoot) {
             $this->debug(3, "We have no document root set, so as a last resort, lets check if the image is in the current dir and serve that.");
             //We don't support serving images outside the current dir if we don't have a doc root for security reasons.
             $file = preg_replace('/^.*?([^\/\\\\]+)$/', '$1', $src); //strip off any path info and just leave the filename.
-            if (is_file($file)) {
+            if ($file !== '' && is_file($file)) {
                 return $this->realpath($file);
             }
             return $this->error("Could not find your website document root and the file specified doesn't exist in timthumbs directory. We don't support serving files outside timthumb's directory without a document root for security reasons.");
-        } else if (!is_dir($this->docRoot)) {
-            $this->error("Server path does not exist. Ensure variable \$_SERVER['DOCUMENT_ROOT'] is set correctly");
         }
 
-        //Do not go past this point without docRoot set
+        $docRoot = $this->realpath($this->docRoot);
+        if (!$docRoot || !is_dir($docRoot)) {
+            return $this->error("Server path does not exist. Ensure variable \$_SERVER['DOCUMENT_ROOT'] is set correctly");
+        }
 
-        //Try src under docRoot
-        if (file_exists($this->docRoot . '/' . $src)) {
-            $this->debug(3, "Found file as " . $this->docRoot . '/' . $src);
-            $real = $this->realpath($this->docRoot . '/' . $src);
-            if (stripos($real, $this->docRoot) === 0) {
-                return $real;
-            } else {
+        // 只在站点根目录内探测候选文件，避免越界路径触发 open_basedir 警告
+        $candidates = array(
+            $docRoot . '/' . $src,              // 相对站点根目录，如 wp-content/uploads/2024/01/a.jpg
+            dirname(__FILE__) . '/' . $src,     // 相对 timthumb 所在目录，兼容只传文件名的老调用
+        );
+
+        foreach ($candidates as $path) {
+            $path = $this->realpath(str_replace('\\', '/', $path));
+            if (!$path || stripos($path, $docRoot) !== 0) {
                 $this->debug(1, "Security block: The file specified occurs outside the document root.");
-                //allow search to continue
+                continue;
             }
-        }
-        //Check absolute paths and then verify the real path is under doc root
-        $absolute = $this->realpath('/' . $src);
-        if ($absolute && file_exists($absolute)) { //realpath does file_exists check, so can probably skip the exists check here
-            $this->debug(3, "Found absolute path: $absolute");
-            if (!$this->docRoot) {
-                $this->sanityFail("docRoot not set when checking absolute path.");
+            if (is_file($path)) {
+                $this->debug(3, "Found file as: " . $path);
+                return $path;
             }
-            if (stripos($absolute, $this->docRoot) === 0) {
-                return $absolute;
-            } else {
-                $this->debug(1, "Security block: The file specified occurs outside the document root.");
-                //and continue search
-            }
+            $this->debug(3, "Tried file as: " . $path);
         }
 
-        $base = $this->docRoot;
-
-        // account for Windows directory structure
-        if (strstr($_SERVER['SCRIPT_FILENAME'], ':')) {
-            $sub_directories = explode('\\', str_replace($this->docRoot, '', $_SERVER['SCRIPT_FILENAME']));
-        } else {
-            $sub_directories = explode('/', str_replace($this->docRoot, '', $_SERVER['SCRIPT_FILENAME']));
-        }
-
-        foreach ($sub_directories as $sub) {
-            $base .= $sub . '/';
-            $this->debug(3, "Trying file as: " . $base . $src);
-            if (file_exists($base . $src)) {
-                $this->debug(3, "Found file as: " . $base . $src);
-                $real = $this->realpath($base . $src);
-                if (stripos($real, $this->realpath($this->docRoot)) === 0) {
-                    return $real;
-                } else {
-                    $this->debug(1, "Security block: The file specified occurs outside the document root.");
-                    //And continue search
-                }
-            }
-        }
+        $this->debug(1, "Could not locate the local image: " . $src);
         return false;
     }
 

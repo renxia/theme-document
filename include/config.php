@@ -787,7 +787,7 @@ define( "CONFIG", [
 
 	'document_thumbnail'          => 1,
 	"document_thumbnail_position" => "right",
-	'document_thumbnail_default'  => get_theme_root_uri() . '/destination/assets/images/default.png',
+	'document_thumbnail_default'  => get_template_directory_uri() . '/assets/images/default.png',
 	'document_thumbnail_rewrite'  => 0, // 是否启用缩略图伪静态
 	"document_Gravatar"           => 'gravatar.loli.net/avatar',
 	//默认替换的gavatar源
@@ -874,7 +874,7 @@ define( "CONFIG", [
 	'document_header_font_color'     => '#262626',
 	'document_sub_menu_bg_color'     => '#fff',
 	'document_sub_menu_font_color'   => 'rgba(0,0,0,0.65)',
-	"document_logo_url"              => get_theme_root_uri() . '/destination/assets/images/logo.png',
+	"document_logo_url"              => get_template_directory_uri() . '/assets/images/logo.png',
 	//主题logo
 	'document_header_border_color'   => '#e1e1e1',
 	'document_header_shadow_color'   => 'hsl(230deg 68% 14% / 1%)',

@@ -877,10 +877,14 @@ function nicen_theme_showStructure() {
 function nicen_theme_getThumb() {
 
 
-	$default = nicen_theme_config( 'document_thumbnail_default', false );
+	$default = nicen_theme_img_url( nicen_theme_config( 'document_thumbnail_default', false ) );
 
-	if ( strpos( $default, 'http' ) === false ) {
-		$default = site_url() . $default;
+	/* 未配置默认缩略图、配置的地址不是图片、或本地文件已不存在时，退回主题自带的默认图，
+	   避免把站点首页之类的非图片地址、或已删除的文件交给 timthumb 去探测 */
+	if ( $default === ''
+	     || ! preg_match( '/\.(png|jpe?g|gif|webp|bmp)(\?.*)?$/i', $default )
+	     || nicen_theme_image_exists( $default ) === false ) {
+		$default = nicen_theme_img_url( get_template_directory_uri() . '/assets/images/default.png' );
 	}
 
 
@@ -899,7 +903,8 @@ function nicen_theme_getThumb() {
 		if ( empty( $number ) ) { // 既没有缩略图，文中也没有图，设置一幅默认的图片
 			return $default;
 		} else {
-			return $matches [1] [0];
+			/* 文中图片可能是相对地址（如 bzjd.gif），统一转成绝对地址，避免 timthumb 拿到裸文件名后到处探测 */
+			return nicen_theme_img_url( $matches [1] [0] );
 		}
 
 	} else {
@@ -907,13 +912,65 @@ function nicen_theme_getThumb() {
 		/*
 		 * 返回站点缩略图
 		 * */
-		if ( strpos( $thumb, 'http' ) === false ) {
-			return site_url() . $thumb;
-		} else {
-			return $thumb;
-		}
+		return nicen_theme_img_url( $thumb );
 
 	}
+}
+
+
+/*
+ * 把可能是相对地址的图片地址转成绝对地址
+ * */
+function nicen_theme_img_url( $src ) {
+
+	$src = trim( (string) $src );
+
+	if ( $src === '' ) {
+		return '';
+	}
+
+	/* 协议相对地址：//cdn.xxx.com/a.png */
+	if ( strpos( $src, '//' ) === 0 ) {
+		return ( is_ssl() ? 'https:' : 'http:' ) . $src;
+	}
+
+	/* 已经是绝对地址 */
+	if ( preg_match( '#^https?://#i', $src ) ) {
+		return $src;
+	}
+
+	if ( strpos( $src, 'data:' ) === 0 ) {
+		return $src;
+	}
+
+	/* 传给 site_url() 的路径需要以 / 开头，否则会被拼到当前路径后面 */
+	return site_url( '/' . ltrim( $src, '/' ) );
+}
+
+
+/*
+ * 判断站点内的图片是否真实存在
+ * 返回 true/false；不是本站地址（外链、CDN、内联图片）时返回 null，表示无法判断
+ * */
+function nicen_theme_image_exists( $src ) {
+
+	$src = trim( (string) $src );
+
+	if ( $src === '' || strpos( $src, 'data:' ) === 0 ) {
+		return null;
+	}
+
+	$site = untrailingslashit( site_url() );
+
+	if ( strpos( $src, $site ) !== 0 ) {
+		return null;
+	}
+
+	/* 去掉 ?query 与 #hash，再映射到站点根目录 */
+	$relative = preg_replace( '/[?#].*$/', '', substr( $src, strlen( $site ) ) );
+	$path     = ABSPATH . ltrim( $relative, '/' );
+
+	return is_file( $path );
 }
 
 
@@ -957,6 +1014,13 @@ function nicen_get_img_timthumb($src, $width, $height, $args = array())
 		$src = nicen_theme_getThumb();
 	}
 
+	$src = nicen_theme_img_url( $src );
+
+	/* 地址为空、内联图片，或不是 timthumb 支持的图片类型时直接返回，避免后端对无效路径做无意义的探测 */
+	if ( $src === '' || strpos( $src, 'data:' ) === 0 || ! preg_match( '/\.(png|jpe?g|gif|webp|bmp)(\?.*)?$/i', $src ) ) {
+		return $src;
+	}
+
     if ($width == null || $height == null) {
         return $src;
     }
@@ -966,7 +1030,7 @@ function nicen_get_img_timthumb($src, $width, $height, $args = array())
         return home_url() . "/timthumb/w_{$width}/h_{$height}/q_90/zc_1/a_c/" . safe_base64_encode($src) . ".png";
     }
 
-    return get_template_directory_uri() . "/timthumb.php?w={$width}&h={$height}&a=c&zc=1&q=90&src=" . $src;
+    return get_template_directory_uri() . "/timthumb.php?w={$width}&h={$height}&a=c&zc=1&q=90&src=" . rawurlencode( $src );
 }
 
 function safe_base64_encode($string)
