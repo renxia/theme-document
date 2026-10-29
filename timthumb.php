@@ -39,7 +39,7 @@ if(! defined('FILE_CACHE_SUFFIX') ) 		define ('FILE_CACHE_SUFFIX', '.timthumb.tx
 if(! defined('FILE_CACHE_PREFIX') ) 		define ('FILE_CACHE_PREFIX', 'timthumb');				// What to put at the beg of all files in the cache directory so we can identify them
 if(! defined('FILE_CACHE_DIRECTORY') ) 		define ('FILE_CACHE_DIRECTORY', './cache/thumbnail');				// Directory where images are cached. Left blank it will use the system temporary directory (which is better for security)
 if(! defined('MAX_FILE_SIZE') )				define ('MAX_FILE_SIZE', 10485760);						// 10 Megs is 10485760. This is the max internal or external file size that we'll process.
-if(! defined('CURL_TIMEOUT') )				define ('CURL_TIMEOUT', 20);							// Timeout duration for Curl. This only applies if you have Curl installed and aren't using PHP's default URL fetching mechanism.
+if(! defined('CURL_TIMEOUT') )				define ('CURL_TIMEOUT', 10);							// Timeout duration for Curl. 原 20s 偏长：远端不可达时会占住 PHP 子进程 20s，被扫描器批量利用会打满 php-fpm
 if(! defined('WAIT_BETWEEN_FETCH_ERRORS') )	define ('WAIT_BETWEEN_FETCH_ERRORS', 3600);				// Time to wait between errors fetching remote file
 
 //Browser caching
@@ -840,7 +840,7 @@ class timthumb
             $exec = OPTIPNG_PATH;
             $this->debug(3, "optipng'ing $tempfile");
             $presize = filesize($tempfile);
-            $out = `$exec -o1 $tempfile`; //you can use up to -o7 but it really slows things down
+            $out = shell_exec("$exec -o1 $tempfile"); //PHP 8.5 起反引号操作符已弃用，改用 shell_exec()（行为等价）；you can use up to -o7 but it really slows things down
             clearstatcache();
             $aftersize = filesize($tempfile);
             $sizeDrop = $presize - $aftersize;
@@ -855,7 +855,7 @@ class timthumb
             $exec = PNGCRUSH_PATH;
             $tempfile2 = tempnam($this->cacheDirectory, 'timthumb_tmpimg_');
             $this->debug(3, "pngcrush'ing $tempfile to $tempfile2");
-            $out = `$exec $tempfile $tempfile2`;
+            $out = shell_exec("$exec $tempfile $tempfile2");
             $todel = "";
             if (is_file($tempfile2)) {
                 $sizeDrop = filesize($tempfile) - filesize($tempfile2);
@@ -901,8 +901,12 @@ class timthumb
             return $this->error("Could not get a lock for writing.");
         }
         $this->debug(3, "Done image replace with security header. Cleaning up and running cleanCache()");
-        imagedestroy($canvas);
-        imagedestroy($image);
+        // PHP 8.0 起 GD 返回 GdImage 对象，由 GC 自动回收；imagedestroy() 自 PHP 8.5 起废弃，
+        // 仅为兼容 7.x 环境保留调用
+        if (PHP_VERSION_ID < 80000) {
+            imagedestroy($canvas);
+            imagedestroy($image);
+        }
         return true;
     }
 
@@ -1053,7 +1057,7 @@ class timthumb
             $command = "$xv --server-args=\"-screen 0, {$screenX}x{$screenY}x{$colDepth}\" $cuty $proxy --max-wait=$timeout --user-agent=\"$ua\" --javascript=$jsOn --java=$javaOn --plugins=$pluginsOn --js-can-open-windows=off --url=\"$url\" --out-format=$format --out=$tempfile";
         }
         $this->debug(3, "Executing command: $command");
-        $out = `$command`;
+        $out = shell_exec($command);
         $this->debug(3, "Received output: $out");
         if (!is_file($tempfile)) {
             $this->set404();
@@ -1323,6 +1327,11 @@ class timthumb
             $this->debug(3, "Fetching url with curl: $url");
             $curl = curl_init($url);
             curl_setopt($curl, CURLOPT_TIMEOUT, CURL_TIMEOUT);
+            // 连接阶段单独限时：远端不可达时不必等满 CURL_TIMEOUT
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 5);
+            // 慢速中断：5 秒内速率低于 1KB/s 直接放弃，避免慢速链接长期占住 PHP 子进程
+            curl_setopt($curl, CURLOPT_LOW_SPEED_LIMIT, 1024);
+            curl_setopt($curl, CURLOPT_LOW_SPEED_TIME, 5);
             curl_setopt($curl, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/534.30 (KHTML, like Gecko) Chrome/12.0.742.122 Safari/534.30");
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
             curl_setopt($curl, CURLOPT_HEADER, 0);
@@ -1341,14 +1350,15 @@ class timthumb
                 $this->error("External Image is Redirecting. Try alternate image url");
                 return false;
             }
-            if ($curlResult) {
-                curl_close($curl);
-                return true;
-            } else {
+            // curl_close() 自 PHP 8.0 起就是空操作（CurlHandle 是对象，由 GC 回收），8.5 起废弃；
+            // 这里统一收口：先取错误信息（close 之后再取无效），再按版本条件释放
+            if (!$curlResult) {
                 $this->lastURLError = curl_error($curl);
-                curl_close($curl);
-                return false;
             }
+            if (PHP_VERSION_ID < 80000) {
+                curl_close($curl);
+            }
+            return (bool)$curlResult;
         } else {
             $img = @file_get_contents($url);
             if ($img === false) {
