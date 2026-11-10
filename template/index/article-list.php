@@ -39,8 +39,8 @@ if ( nicen_theme_config( 'document_thumbnail_position', false ) == "right" ) {
         <article class="i-article">
 
             <div class="i-article-summary" <?php echo $position ?>>
-                <h2 id="<?php echo $prefix; ?>h2<?php echo get_the_ID(); ?>" class="i-article-title">
-                    <a href="<?php the_permalink(); ?>" title="<?php the_title(); ?>"><?php the_title(); ?></a>
+                <h2 id="<?php echo esc_attr( $prefix ); ?>h2<?php echo esc_attr( get_the_ID() ); ?>" class="i-article-title">
+                    <a href="<?php echo esc_url( get_the_permalink() ); ?>" title="<?php echo esc_attr( get_the_title() ); ?>"><?php echo esc_html( get_the_title() ); ?></a>
                 </h2>
                 <div class="i-article-excerpt"><?php nicen_theme_getExcerpt( get_the_excerpt(), $post->post_password ); ?></div>
                 <div class="i-article-info">
@@ -48,26 +48,28 @@ if ( nicen_theme_config( 'document_thumbnail_position', false ) == "right" ) {
 						<?php
 						$author   = get_the_author_meta( 'display_name', $post->post_author );  //获取作者名字
 						$category = nicen_theme_getCategory( get_the_ID() ); //获取文章分类
-						$link     = @get_category_link( ( get_the_category() )[0]->term_id );
+						$cats     = get_the_category();
+						// 无分类时避免访问 [0]->term_id（PHP 8 会告警），并做转义
+						$link     = ! empty( $cats ) ? get_category_link( $cats[0]->term_id ) : '';
 						$url      = get_the_author_meta( 'user_url', $post->post_author );
 						?>
 
 
 						<?php if ( nicen_theme_getThumbnail() ) { ?>
-                            <li class="category <?php echo $cate_pos ?>">
-                                <a href="<?php echo $link ?>"
-                                   title=" <?php echo $category; ?>"> <?php echo $category; ?></a>
+                            <li class="category <?php echo esc_attr( $cate_pos ); ?>">
+                                <a href="<?php echo esc_url( $link ); ?>"
+                                   title=" <?php echo esc_attr( $category ); ?>"> <?php echo esc_html( $category ); ?></a>
                             </li>
 						<?php } else { ?>
                             <li>
-                                <i class="iconfont icon-fenlei"></i><a href="<?php echo $link ?>"
-                                                                       title=" <?php echo $category; ?>"> <?php echo $category; ?></a>
+                                <i class="iconfont icon-fenlei"></i><a href="<?php echo esc_url( $link ); ?>"
+                                                                       title=" <?php echo esc_attr( $category ); ?>"> <?php echo esc_html( $category ); ?></a>
                             </li>
 						<?php } ?>
 
                         <li class="first" id="author"><i class="iconfont icon-chuangzuozhejieshao"></i><a
-                                    href="<?php echo $url ?>"
-                                    title=" <?php echo $author; ?>"> <?php echo $author; ?></a></li>
+                                    href="<?php echo esc_url( $url ); ?>"
+                                    title=" <?php echo esc_attr( $author ); ?>"> <?php echo esc_html( $author ); ?></a></li>
 
                         <li>
                             <i class="iconfont icon-shijian"></i><?php echo nicen_theme_timeToString( get_the_time( "Y-m-d H:i:s" ) ); ?>

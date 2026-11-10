@@ -343,13 +343,14 @@ function nicen_theme_getExcerpt( $content, $password, $flag = true ) {
 	$content = strip_tags( $content );//去除html
 	$content = preg_replace( "/\[[\s\S]*?]/", "", $content ); //去除短标签
 
+	// echo 模式输出到 HTML 正文，用 esc_html；return 模式返回纯文本，
+	// 由调用方按目标上下文（属性 / JSON）分别用 esc_attr / wp_json_encode 处理。
+	// 原 addslashes() 既挡不住属性闭合，也会破坏 JSON（如 \' 非法），已移除。
 	if ( $flag ) {
-		echo addslashes( $content );
-	} else {
-		return addslashes( $content );
+		echo esc_html( $content );
 	}
 
-
+	return $content;
 }
 
 
@@ -390,7 +391,8 @@ function nicen_theme_getLinks() {
 	 * */
 	$terms = get_terms( 'category', 'orderby=name&hide_empty=0' );
 
-	if ( count( $terms ) > 0 ) {
+	// get_terms 失败时返回 WP_Error，PHP 8 对非 Countable 执行 count() 会抛 TypeError
+	if ( is_array( $terms ) && count( $terms ) > 0 ) {
 		foreach ( $terms as $term ) {
 			$links[] = $site_url . '/category/' . $term->slug;
 		}
@@ -400,7 +402,7 @@ function nicen_theme_getLinks() {
 	 * 遍历标签
 	 * */
 	$tags = get_terms( "post_tag" );
-	if ( count( $tags ) > 0 ) {
+	if ( is_array( $tags ) && count( $tags ) > 0 ) {
 		foreach ( $tags as $tag ) {
 			$links[] = $site_url . '/tag/' . $tag->slug;
 		}
@@ -423,22 +425,25 @@ function nicen_theme_title() {
 
 		$category = nicen_theme_getCategory( get_the_ID() );
 
-		the_title();
-		echo nicen_theme_getCategory( get_the_ID() ) == "暂无分类" ? "" : "－" . $category;
-		echo "－";
-		bloginfo( 'name' );
+		$title = get_the_title();
+		$title .= nicen_theme_getCategory( get_the_ID() ) == "暂无分类" ? "" : "－" . $category;
+		$title .= "－";
+		$title .= get_bloginfo( 'name' );
 		/*
 		 * 目录和标签
 		 * */
 	} elseif ( is_category() || is_tag() ) {
-		echo preg_replace( '/.*?： ?/', '', strip_tags( get_the_archive_title() ) );
-		echo "－";
-		bloginfo( 'name' );
+		$title = preg_replace( '/.*?： ?/', '', strip_tags( get_the_archive_title() ) );
+		$title .= "－";
+		$title .= get_bloginfo( 'name' );
 	} else {
-		bloginfo( 'name' );
-		echo "－";
-		nicen_theme_config( 'document_subtitle' );
+		$title = get_bloginfo( 'name' );
+		$title .= "－";
+		$title .= nicen_theme_config( 'document_subtitle', false );
 	}
+
+	// <title> 标签内统一转义，避免标题中的引号 / 标签注入
+	echo esc_html( $title );
 }
 
 
@@ -449,20 +454,20 @@ function nicen_theme_keywords( $flag = true ) {
 
 	global $post;
 
+	$keywords = '';
 	if ( is_single() || is_page() ) {
-		$keywords = get_post_meta( $post->ID, 'nicen_keywords', true );
-		if ( $keywords ) {
-			if ( $flag ) {
-				echo $keywords;
-			} else {
-				return $keywords;
-			}
-		} else {
-			return nicen_theme_config( 'document_keywords', $flag );
-		}
+		$meta = get_post_meta( $post->ID, 'nicen_keywords', true );
+		$keywords = $meta ?: nicen_theme_config( 'document_keywords', false );
 	} else {
-		return nicen_theme_config( 'document_keywords', $flag );
+		$keywords = nicen_theme_config( 'document_keywords', false );
 	}
+
+	// echo 模式用于 <meta content="..."> 属性上下文，统一转义；return 模式返回原值供调用方处理
+	if ( $flag ) {
+		echo esc_attr( $keywords );
+	}
+
+	return $keywords;
 }
 
 
@@ -471,32 +476,27 @@ function nicen_theme_keywords( $flag = true ) {
  * */
 function nicen_theme_description( $flag = true ) {
 
-
 	global $post;
 
 	if ( is_single() || is_page() ) {
 		/* 定义的描述 */
 		$description = get_post_meta( $post->ID, 'nicen_description', true );
-		/* 获取文章摘要 */
-		if ( $description ) {
-			if ( $flag ) {
-				echo $description;
-			} else {
-				return $description;
-			}
-		} else {
-			return nicen_theme_getExcerpt( get_the_excerpt(), $post->post_password, $flag );
+		/* 获取文章摘要（false=返回纯文本，交给调用方按上下文转义） */
+		if ( ! $description ) {
+			$description = nicen_theme_getExcerpt( get_the_excerpt(), $post->post_password, false );
 		}
-
 	} elseif ( is_category() || is_tag() ) {
-		if ( $flag ) {
-			return preg_replace( '/\n/', '', strip_tags( term_description() ) );
-		} else {
-			echo preg_replace( '/\n/', '', strip_tags( term_description() ) );
-		}
+		$description = preg_replace( '/\n/', '', strip_tags( term_description() ) );
 	} else {
-		return nicen_theme_config( 'document_description', $flag );
+		$description = nicen_theme_config( 'document_description', false );
 	}
+
+	// echo 模式用于 <meta content="..."> 属性上下文，统一转义；return 模式返回原值
+	if ( $flag ) {
+		echo esc_attr( $description );
+	}
+
+	return $description;
 }
 
 
@@ -820,10 +820,10 @@ function nicen_theme_og() {
 <meta property="og:site_name" content="%s" />
 <meta property="og:title" content="%s" />
 <meta property="og:description" content="%s" />',
-			home_url(),
-			get_bloginfo( 'name' ),
-			get_bloginfo( 'name' ) . '-' . nicen_theme_config( 'document_subtitle', false ),
-			nicen_theme_description( false ) );
+			esc_url( home_url() ),
+			esc_attr( get_bloginfo( 'name' ) ),
+			esc_attr( get_bloginfo( 'name' ) . '-' . nicen_theme_config( 'document_subtitle', false ) ),
+			esc_attr( nicen_theme_description( false ) ) );
 	} /*
  * 文章或者页面
  * */
@@ -834,11 +834,11 @@ function nicen_theme_og() {
 <meta property="og:title" content="%s" />
 <meta property="og:image" content="%s" />
 <meta property="og:description" content="%s" />',
-			get_the_permalink(),
-			get_bloginfo( 'name' ),
-			get_the_title(),
-			nicen_theme_getThumb(),
-			nicen_theme_description( false ) );
+			esc_url( get_the_permalink() ),
+			esc_attr( get_bloginfo( 'name' ) ),
+			esc_attr( get_the_title() ),
+			esc_url( nicen_theme_getThumb() ),
+			esc_attr( nicen_theme_description( false ) ) );
 	} else if ( is_category() || is_tag() ) {
 
 		return sprintf( '<meta property="og:type" content="webpage" />
@@ -846,10 +846,10 @@ function nicen_theme_og() {
 <meta property="og:site_name" content="%s" />
 <meta property="og:title" content="%s" />
 <meta property="og:description" content="%s" />',
-			nicen_theme_getCatLink(),
-			get_bloginfo( 'name' ),
-			nicen_theme_getCat(),
-			nicen_theme_description( false ) );
+			esc_url( nicen_theme_getCatLink() ),
+			esc_attr( get_bloginfo( 'name' ) ),
+			esc_attr( nicen_theme_getCat() ),
+			esc_attr( nicen_theme_description( false ) ) );
 	} else {
 		return '';
 	}

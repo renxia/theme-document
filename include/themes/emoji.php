@@ -7,46 +7,50 @@
 
 
 /**
- * @param $html
+ * @param $comment_ID
  *
- * @return void
  * 评论内提取表情
  */
 function nicen_theme_textToEmoji( $comment_ID ) {
 
     global $wpdb;
 
-
     $comment = get_comment( $comment_ID );
+    if ( ! $comment ) {
+        return;
+    }
     $html    = $comment->comment_content;
     $path    = get_cdn_uri() . "/assets/smilies/"; //主题目录
     $dir     = get_template_directory() . "/assets/smilies/"; //主题目录
 
-
     /*
-     * 匹配是否有表情
+     * 匹配是否有表情（名称仅允许字母数字、下划线、连字符，避免正则注入与路径穿越）
      * */
-    if ( preg_match_all( "/:(.+?):/", $html, $match ) ) {
+    if ( preg_match_all( "/:([A-Za-z0-9_-]+):/", $html, $match ) ) {
 
         $count = 0; //有效表情数量
 
-        /*判断表情是否存在*/
-        foreach ( $match[1] as $emoji ) {
-            if ( file_exists( $dir . $emoji . ".png" ) ) {
-                $html = preg_replace( "/:" . $emoji . ":/", "<img class='comments-emoji' src='" . $path . $emoji . ".png' title='emoji'/>", $html );
+        foreach ( array_unique( $match[1] ) as $emoji ) {
+            // 二次确认文件存在，且严格限制名称，杜绝 ../ 穿越
+            if ( preg_match( '/^[A-Za-z0-9_-]+$/', $emoji ) && is_file( $dir . $emoji . ".png" ) ) {
+                $img  = "<img class='comments-emoji' src='" . esc_url( $path . $emoji . ".png" ) . "' title='emoji'/>";
+                $html = str_replace( ':' . $emoji . ':', $img, $html );
                 $count ++;
             }
         }
 
         /*
-         * 判断有效的表情数量
+         * 有替换才回写，且使用 $wpdb->update 参数化
          * */
-        $wpdb->update( $wpdb->comments, [
-            "comment_ID"      => $comment_ID,
-            "comment_content" => $html
-        ], compact( 'comment_ID' ) );
-
-
+        if ( $count > 0 ) {
+            $wpdb->update(
+                $wpdb->comments,
+                [ 'comment_content' => $html ],
+                [ 'comment_ID' => (int) $comment_ID ],
+                [ '%s' ],
+                [ '%d' ]
+            );
+        }
     }
 }
 

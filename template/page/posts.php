@@ -17,11 +17,11 @@ query_posts( "nopaging=true&posts_per_page=-1&orderby=modified" );//查询所有
 					<?php while ( have_posts() ) {
 						the_post();//移动文字指定到此处 ?>
                         <li>
-                            <a href="<?php the_permalink() ?>" title="<?php the_title() ?>">
-                                <div class="datetime"><?php echo the_time( "Y-m-d" ); ?></div>
+                            <a href="<?php echo esc_url( get_the_permalink() ); ?>" title="<?php echo esc_attr( get_the_title() ); ?>">
+                                <div class="datetime"><?php echo esc_html( get_the_time( "Y-m-d" ) ); ?></div>
                                 <div class="info">
                                     <div class="title">
-										<?php the_title() ?>
+										<?php echo esc_html( get_the_title() ); ?>
                                     </div>
                                     <div class="excerpt">
 										<?php nicen_theme_getExcerpt( get_the_excerpt(), $post->post_password ); ?>

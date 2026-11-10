@@ -18,7 +18,7 @@ $pagination = preg_match( '/<a class=\"next(?:.*?)href=\"(.*?)\"/', $pagination,
 
 ?>
 <div class="pagination">
-    <button class="loadnext" data-next="<?php echo $match[1] ?? ""; ?>"><i
+    <button class="loadnext" data-next="<?php echo esc_url( $match[1] ?? "" ); ?>"><i
                 class="iconfont icon-loading"></i><span><?php echo isset( $match[1] ) ? "点击查看更多" : "没有更多了"; ?></span>
     </button>
 </div>

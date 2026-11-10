@@ -5,17 +5,21 @@
  * @author 友人a丶
  * @date 2022-07-08
  * */
-global $table_prefix, $wpdb;
+    global $wpdb;
 
-
+    // 数量统一转为非负整数，防止 widget 配置值拼接进 SQL / query_posts
+    $number = absint($number);
+    if ($number < 1) {
+        $number = 5;
+    }
 ?>
-<div class="div-info recommend <?php echo $show_title == 1 ? '' : 'no-title'; ?>">
+<div class="div-info recommend <?php echo esc_attr($show_title == 1 ? '' : 'no-title'); ?>">
 
 	<?php if ( $show_title == 1 ) { ?>
+
         <div class="header">
             <ul>
-                <li class="active" style="padding-left:1rem;padding-right:1rem;"><div class="mark"></div><?php echo $title; ?></li>
-                <!-- <li>修改记录</li>-->
+                <li class="active"><div class="mark"></div><?php echo esc_html($title); ?></li>
             </ul>
         </div>
 	<?php } ?>
@@ -31,6 +35,9 @@ global $table_prefix, $wpdb;
 
 			$count = 0; //加载的文章数量
 
+			// 分类 ID 统一整数化，供 IN 子句使用
+			$category_ids = [];
+
 			if ( is_single() ) {
 
 				/* 获取目录 */
@@ -38,20 +45,16 @@ global $table_prefix, $wpdb;
 
 				/* 条件 */
 				if ( $cat ) {
-
-					$category = []; //分类ID
-
-					foreach ( $cat as $item ) {
-						$category[] = $item->term_id;
+					foreach ( $cat as $term ) {
+						$category_ids[] = (int) $term->term_id;
 					}
-
 
 					$condition = array_merge( $condition, [
 						'tax_query' => [
 							[
 								'taxonomy' => 'category',
 								'field'    => 'term_id',
-								'terms'    => $category,
+								'terms'    => $category_ids,
 							],
 						]
 					] );
@@ -64,43 +67,44 @@ global $table_prefix, $wpdb;
 					query_posts( $condition );
 					break;
 				case 2:
-
 					$condition = array_merge( $condition, [ "orderby" => "modified" ] );
-
 					query_posts( $condition );
 					break;
 				case 3:
-
 					$condition = array_merge( $condition, [
 						'posts_per_page' => $number,
 						"orderby"        => "rand"
 					] );
-
 					query_posts( $condition );
-
 					break;
 				case 4:
-
-					/*
-					 * 获取浏览量最高的文章
-					 * */
-					if ( is_single() && ! empty( $category ) ) {
-
-						$sql = 'select a.post_id,a.meta_value
-                                                from `' . $table_prefix . 'postmeta` As a join `' . $table_prefix . 'term_relationships` as b on a.post_id = b.object_id
-                                                where a.meta_key = "views" and b.term_taxonomy_id in (' . join( ',', $category ) . ') order by a.meta_value+0 DESC limit ' . $number;
-
+					// IN 子句用 %d 占位符逐项构造，LIMIT 用 %d，避免任何拼接注入
+					if ( is_single() && ! empty( $category_ids ) ) {
+						$placeholders = implode( ',', array_fill( 0, count( $category_ids ), '%d' ) );
+						$sql = $wpdb->prepare(
+							"SELECT a.post_id, a.meta_value
+							 FROM {$wpdb->postmeta} AS a
+							 JOIN {$wpdb->term_relationships} AS b ON a.post_id = b.object_id
+							 WHERE a.meta_key = %s
+							   AND b.term_taxonomy_id IN ($placeholders)
+							 ORDER BY a.meta_value+0 DESC LIMIT %d",
+							array_merge( [ 'views' ], $category_ids, [ $number ] )
+						);
 					} else {
-
-						$sql = 'select a.post_id,a.meta_value
-                                                from `' . $table_prefix . 'postmeta` As a join `' . $table_prefix . 'term_relationships` as b on a.post_id = b.object_id
-                                                where a.meta_key = "views" order by a.meta_value+0 DESC limit ' . $number;
-
+						$sql = $wpdb->prepare(
+							"SELECT a.post_id, a.meta_value
+							 FROM {$wpdb->postmeta} AS a
+							 JOIN {$wpdb->term_relationships} AS b ON a.post_id = b.object_id
+							 WHERE a.meta_key = %s
+							 ORDER BY a.meta_value+0 DESC LIMIT %d",
+							'views',
+							$number
+						);
 					}
 
 					$result   = $wpdb->get_results( $sql, ARRAY_A );
 					$post_ids = array_map( function ( $item ) {
-						return $item['post_id'];
+						return (int) $item['post_id'];
 					}, $result );
 
 					query_posts( array_merge( $condition, [ "post__in" => $post_ids ] ) );
@@ -116,26 +120,26 @@ global $table_prefix, $wpdb;
 
 			while ( have_posts() ) {
 				$count ++;
-				the_post();//移动文字指定到此处
+				the_post();
 				?>
 
                 <div class="swiper-slide">
-                    <a href="<?php echo get_the_permalink() ?>" title="<?php echo get_the_title() ?>"
-                       target="_blank">
+                    <a href="<?php echo esc_url(get_the_permalink()) ?>" title="<?php echo esc_attr(get_the_title()) ?>"
+                       target="_blank" rel="noopener noreferrer">
                         <div class="thumnbnail">
-                            <img loading="lazy" src="<?php echo nicen_get_img_timthumb(null, 78, 56) ?>" alt="<?php echo get_the_title() ?>"/>
+                            <img loading="lazy" src="<?php echo esc_url(nicen_get_img_timthumb(null, 78, 56)) ?>" alt="<?php echo esc_attr(get_the_title()) ?>"/>
                         </div>
                         <div class="caption">
-							<?php echo get_the_title() ?>
+							<?php echo esc_html(get_the_title()) ?>
                         </div>
                         <div class="detail">
-                            <span><?php echo get_the_time( "Y年m月d日" ) ?></span>
+                            <span><?php echo esc_html(get_the_time( "Y年m月d日" )) ?></span>
                             <span>
-                                        <i class="iconfont icon-icon-test"></i><?php echo nicen_theme_getPostViews( get_the_ID() ); ?>
+                                        <i class="iconfont icon-icon-test"></i><?php echo esc_html(nicen_theme_getPostViews( get_the_ID() )); ?>
                                     </span>
                         </div>
                         <div class="category">
-							<?php echo nicen_theme_getCategory( get_the_ID() ); ?>
+							<?php echo esc_html(nicen_theme_getCategory( get_the_ID() )); ?>
                         </div>
                     </a>
                 </div>
@@ -150,7 +154,7 @@ global $table_prefix, $wpdb;
 		if ( $count == 0 ) {
 			$url = get_cdn_uri() . "/assets/images/nothing.svg"; //主题url
 			echo '<div class="empty">
-                            <img src="' . $url . '" title="暂无相关文章" />
+                            <img src="' . esc_url($url) . '" title="暂无相关文章" />
                             <span>暂无可推荐内容</span>
                       </div>';
 		} else {
@@ -158,9 +162,6 @@ global $table_prefix, $wpdb;
                     <div class="swiper-button-next"></div>
                     <div class="swiper-button-prev"></div>';
 		}
-
-
 		?>
-
     </div>
 </div>

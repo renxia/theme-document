@@ -15,9 +15,9 @@ if ( nicen_theme_config( 'document_thumbnail_position', false ) == "right" ) {
 
 
 if ( $thumbnail ) { ?>
-    <div class="i-article-thumb <?php echo $position ?>">
-        <a href="<?php the_permalink(); ?>" target="_blank" title="<?php the_title(); ?>">
-            <img loading="lazy" src="<?php echo nicen_get_img_timthumb($thumbnail, 220, 140) ?>" alt="<?php the_title(); ?>"/>
+    <div class="i-article-thumb <?php echo esc_attr( $position ); ?>">
+        <a href="<?php echo esc_url( get_the_permalink() ); ?>" target="_blank" rel="noopener noreferrer" title="<?php echo esc_attr( get_the_title() ); ?>">
+            <img loading="lazy" src="<?php echo esc_url( nicen_get_img_timthumb($thumbnail, 220, 140) ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>"/>
         </a>
     </div>
 <?php } ?>

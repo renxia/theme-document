@@ -22,15 +22,16 @@ if ( nicen_theme_showComments() ) {
 		$adminUserInfo    = wp_get_current_user();
 		$currentCommenter = wp_get_current_commenter();
 
-		//参数
-		$nickname = $isLogin ? ( $adminUserInfo->exists() ? $adminUserInfo->display_name : '' ) : htmlspecialchars( $currentCommenter['comment_author'] );
-		$email    = $isLogin ? ( $adminUserInfo->exists() ? $adminUserInfo->user_email : '' ) : htmlspecialchars( $currentCommenter['comment_author_email'] );
-		$webUrl   = $isLogin ? site_url() : htmlspecialchars( $currentCommenter['comment_author_url'] );
+		//参数（值统一在输出时用 esc_attr / esc_html 转义，此处保留原值）
+		$nickname = $isLogin ? ( $adminUserInfo->exists() ? $adminUserInfo->display_name : '' ) : $currentCommenter['comment_author'];
+		$email    = $isLogin ? ( $adminUserInfo->exists() ? $adminUserInfo->user_email : '' ) : $currentCommenter['comment_author_email'];
+		$webUrl   = $isLogin ? site_url() : $currentCommenter['comment_author_url'];
 		$default  = get_cdn_uri() . '/assets/images/avatar.svg?ver=' . filemtime( get_template_directory() . '/assets/images/avatar.svg' );
 		$avatar   = $isLogin ? ( get_avatar_url( $adminUserInfo->ID ) ?? $default ) : $default;
 
 		$reply_to_id = isset( $_GET['replytocom'] ) ? (int) $_GET['replytocom'] : false;
 
+		$comment = false;
 		if ( $reply_to_id ) {
 			$comment = get_comment( $reply_to_id );
 		}//获取当前回复的评论
@@ -51,11 +52,11 @@ if ( nicen_theme_showComments() ) {
                     <!--评论者信息-->
                     <div class="comment-person">
                         <div class="comment-avatar">
-                            <img src="<?php echo $avatar ?>" alt="默认头像" title="默认头像"/>
+                            <img src="<?php echo esc_url( $avatar ); ?>" alt="默认头像" title="默认头像"/>
                         </div>
                         <div class="comment-info">
-                            <div class="comment-info-top"><?php echo $isLogin ? $nickname : '恨相知晚'; ?></div>
-                            <div class="comment-info-bottom"><?php echo ( ! $comment ) ? '一起参与讨论！' : '回复 ' . $comment->comment_author . '的评论'; ?></div>
+                            <div class="comment-info-top"><?php echo esc_html( $isLogin ? $nickname : '恨相知晚' ); ?></div>
+                            <div class="comment-info-bottom"><?php echo ( ! $comment ) ? '一起参与讨论！' : '回复 ' . esc_html( $comment->comment_author ) . '的评论'; ?></div>
                         </div>
                     </div>
                     <div class="comment-loginout">
@@ -63,13 +64,13 @@ if ( nicen_theme_showComments() ) {
 							cancel_comment_reply_link( '取消回复' );
 						} ?>
                         <a style="display: <?php echo $isLogin ? 'block' : 'none' ?>" title="注销登录"
-                           href="<?php echo wp_logout_url( apply_filters( 'the_permalink', get_permalink(), '' ) ); ?>">注销登录</a>
+                           href="<?php echo esc_url( wp_logout_url( apply_filters( 'the_permalink', get_permalink(), '' ) ) ); ?>">注销登录</a>
                     </div>
                 </div>
                 <div class="comment-form-main">
 					<?php wp_nonce_field( 'unfiltered-html-comment_' . get_the_ID(), '_wp_unfiltered_html_comment', false ); ?>
                     <input type="hidden" name="comment_parent"
-                           value=" <?php echo $reply_to_id ? $comment->comment_ID : ''; ?>">
+                           value="<?php echo $reply_to_id && $comment ? esc_attr( $comment->comment_ID ) : ''; ?>">
                     <input type="hidden" name="comment_post_ID" value="<?php echo get_the_ID(); ?>"
                            id="comment_post_ID">
                     <div class="comment-textarea">
@@ -85,13 +86,13 @@ if ( nicen_theme_showComments() ) {
 
                     <div class="comment-container">
                         <input placeholder="昵称" name="author" type="text" class="comment-name"
-                               value="<?php echo $nickname ?>"
+                               value="<?php echo esc_attr( $nickname ); ?>"
                                required/>
                         <input placeholder="邮箱" name="email" type="email" class="comment-mail"
-                               value="<?php echo $email ?>"
+                               value="<?php echo esc_attr( $email ); ?>"
                                required/>
                         <input placeholder="网址" name="url" type="url" class="comment-url"
-                               value="<?php echo $webUrl ?>"
+                               value="<?php echo esc_attr( $webUrl ); ?>"
                                required/>
                     </div>
                 </div>

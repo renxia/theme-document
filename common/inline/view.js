@@ -6,7 +6,8 @@ if (window._ts) {
     /* 判断时间差是否超过 60 秒 */
     if (timeDiff > 60) {
         $.post(location.pathname + "?document_view=" + Current, function (res) {
-            const data = JSON.parse(res);
+            // 后端返回 application/json，jQuery 已自动解析为对象；兼容仍为字符串的情况
+            const data = (typeof res === 'string') ? JSON.parse(res) : res;
             $(() => {
                 $("div.article-info > ul > li:nth-child(4)").html(`<i class="iconfont icon-icon-test"></i>${data.view}热度`)
             })

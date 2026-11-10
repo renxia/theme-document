@@ -37,15 +37,20 @@ $friend_links = array_map( function ( $link ) {
                     data-name="<?php echo esc_attr( $link['name'] ); ?>"
                     data-image="<?php
 				    if ( empty( $link['image'] ) ) {
-					    $url = parse_url( $link['url'] );
-					    echo esc_attr( "{$url['scheme']}://{$url['host']}/favicon.ico" );
+					    // parse_url 可能返回 false 或缺少 scheme/host（相对 URL），PHP 8 直接取键会告警
+					    $url = wp_parse_url( $link['url'] );
+					    if ( ! empty( $url['scheme'] ) && ! empty( $url['host'] ) ) {
+						    echo esc_attr( $url['scheme'] . '://' . $url['host'] . '/favicon.ico' );
+					    } else {
+						    echo esc_attr( get_cdn_uri() . '/assets/images/default.png' );
+					    }
 				    } else {
 					    echo esc_attr( $link['image'] );
 				    }
 				    ?>"
                     data-description="<?php echo esc_attr( $link['description'] ); ?>"
                     data-url="<?php echo esc_attr( $link['url'] ); ?>">
-                    <a title="<?php echo esc_attr( $link['name']  ); ?>" href="<?php echo esc_attr( $link['url'] ); ?>"><?php echo esc_attr( $link['name'] ); ?></a>
+                    <a title="<?php echo esc_attr( $link['name']  ); ?>" href="<?php echo esc_url( $link['url'] ); ?>"><?php echo esc_html( $link['name'] ); ?></a>
                 </li>
 			<?php endforeach; ?>
         </ul>

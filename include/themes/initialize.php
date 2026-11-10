@@ -94,7 +94,13 @@ add_action( 'admin_init', 'nicen_theme_initialize' );//去除后台无用的东�
 
 /* 如果开启了时区校准 */
 if ( nicen_theme_config( 'document_switch_adjust_date', false ) ) {
-	date_default_timezone_set( get_option( 'timezone_string' ) ); //设置时区
+	// WordPress 站点可能只设置了 UTC 偏移（timezone_string 为空 / 为 "+08:00"），
+	// 这些值传给 date_default_timezone_set() 在 PHP 8 会抛 ValueError/告警。
+	// 仅接受合法的 PHP 时区标识符（含 UTC），否则保持 WordPress 默认设置。
+	$tz = function_exists( 'wp_timezone_string' ) ? wp_timezone_string() : get_option( 'timezone_string' );
+	if ( is_string( $tz ) && in_array( $tz, timezone_identifiers_list(), true ) ) {
+		date_default_timezone_set( $tz );
+	}
 }
 
 

@@ -839,8 +839,8 @@ define( "CONFIG", [
 	'document_seo_og'  => 0,
 	"document_baidu"   => '',
 	//百度站长
-	"document_private" => md5( time() ),
-	//初次安装时的接口密钥
+	"document_private" => bin2hex( random_bytes( 16 ) ),
+	//初次安装时的接口密钥（32 位密码学随机串，避免使用 time() 这类可预测熵）
 
 	"document_tdk"                   => 1,
 	"document_article_tdk"           => 1,

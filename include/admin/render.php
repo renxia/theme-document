@@ -21,7 +21,7 @@ function nicen_theme_getAllCat()
 	 * */
 	$terms = get_terms('category', 'orderby=name&hide_empty=0');
 
-	if (count($terms) > 0) {
+	if (is_array($terms) && count($terms) > 0) {
 		foreach ($terms as $term) {
 			$cat[] = [
 				'label' => '分类：' . $term->name,
@@ -35,7 +35,7 @@ function nicen_theme_getAllCat()
 	 * */
 	$tags = get_terms("post_tag");
 
-	if (count($tags) > 0) {
+	if (is_array($tags) && count($tags) > 0) {
 		foreach ($tags as $tag) {
 			$cat[] = [
 				'label' => '标签：' . $tag->name,

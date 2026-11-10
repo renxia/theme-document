@@ -10,7 +10,7 @@
 
     <!--  标题  -->
     <h1>
-		<?php echo get_the_title(); ?>
+		<?php echo esc_html( get_the_title() ); ?>
     </h1>
 
 <?php
@@ -24,7 +24,9 @@ if ( nicen_theme_showInfo() ) {
 	$url    = get_the_author_meta( 'user_url', $post->post_author );
 
 	$category = nicen_theme_getCategory( get_the_ID() ); //获取文章分类
-	$link     = @get_category_link( ( get_the_category() )[0]->term_id );
+	$cats     = get_the_category();
+	// 无分类时避免访问 [0]->term_id（PHP 8 会告警）
+	$link     = ! empty( $cats ) ? get_category_link( $cats[0]->term_id ) : '';
 
 
 	?>
@@ -32,9 +34,9 @@ if ( nicen_theme_showInfo() ) {
     <!--  仅在文章页面展示 -->
     <div class="article-info">
         <ul>
-            <li id="author"><i class="iconfont icon-chuangzuozhejieshao"></i><?php echo $author; ?></li>
-            <li id="category"><i class="iconfont icon-fenlei"></i><a href="<?php echo $link ?>"
-                                                                     title=" <?php echo $category; ?>"><?php echo $category; ?></a>
+            <li id="author"><i class="iconfont icon-chuangzuozhejieshao"></i><?php echo esc_html( $author ); ?></li>
+            <li id="category"><i class="iconfont icon-fenlei"></i><a href="<?php echo esc_url( $link ); ?>"
+                                                                     title=" <?php echo esc_attr( $category ); ?>"><?php echo esc_html( $category ); ?></a>
             </li>
             <li>
                 <i class="iconfont icon-shijian"></i><?php echo nicen_theme_timeToString( get_the_time( "Y-m-d H:i:s" ) ); ?>

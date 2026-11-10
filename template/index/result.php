@@ -19,7 +19,7 @@ if ( is_category() || is_search() || is_tag() || is_archive() ) {
     <div class="non-result">
 
         <div class="in">
-            <span class="belong"><?php echo $match; ?></span> 的文章列表
+            <span class="belong"><?php echo wp_kses_post( $match ); ?></span> 的文章列表
         </div>
 		<?php
 		/*

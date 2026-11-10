@@ -27,7 +27,7 @@ if(! defined('DEBUG_ON') )					define ('DEBUG_ON', false);								// Enable debu
 if(! defined('DEBUG_LEVEL') )				define ('DEBUG_LEVEL', 1);								// Debug level 1 is less noisy and 3 is the most noisy
 if(! defined('MEMORY_LIMIT') )				define ('MEMORY_LIMIT', '30M');							// Set PHP memory limit
 if(! defined('BLOCK_EXTERNAL_LEECHERS') ) 	define ('BLOCK_EXTERNAL_LEECHERS', false);				// If the image or webshot is being loaded on an external site, display a red "No Hotlinking" gif.
-if(! defined('DISPLAY_ERROR_MESSAGES') )	define ('DISPLAY_ERROR_MESSAGES', true);				// Display error messages. Set to false to turn off errors (good for production websites)
+if(! defined('DISPLAY_ERROR_MESSAGES') )	define ('DISPLAY_ERROR_MESSAGES', false);				// Display error messages. Set to false to turn off errors (good for production websites)
 //Image fetching and caching
 if(! defined('ALLOW_EXTERNAL') )			define ('ALLOW_EXTERNAL', TRUE);						// Allow image fetching from external websites. Will check against ALLOWED_SITES if ALLOW_ALL_EXTERNAL_SITES is false
 if(! defined('ALLOW_ALL_EXTERNAL_SITES') ) 	define ('ALLOW_ALL_EXTERNAL_SITES', false);				// Less secure.
@@ -233,13 +233,19 @@ class timthumb
         //Clean the cache before we do anything because we don't want the first visitor after FILE_CACHE_TIME_BETWEEN_CLEANS expires to get a stale image.
         $this->cleanCache();
 
-        $this->myHost = preg_replace('/^www\./i', '', $_SERVER['HTTP_HOST']);
+        $httpHost = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
+        // 严格校验 Host 头：仅允许域名允许的字符，避免被注入到后续正则/缓存键
+        if (preg_match('/^[A-Za-z0-9.\-]+(?::[0-9]+)?$/', $httpHost)) {
+            $this->myHost = preg_replace('/^www\./i', '', $httpHost);
+        } else {
+            $this->myHost = '';
+        }
         $this->src = $this->param('src');
         if(strpos($this->src,"http://")===false && strpos($this->src,"https://")===false){
             $this->src = self::safe_base64_decode($this->src);
         }
         $this->url = parse_url($this->src);
-        $this->src = preg_replace('/https?:\/\/(?:www\.)?' . $this->myHost . '/i', '', $this->src);
+        $this->src = preg_replace('/https?:\/\/(?:www\.)?' . preg_quote($this->myHost, '/') . '/i', '', $this->src);
 
         if (strlen($this->src) <= 3) {
             $this->error("No image specified");
@@ -266,7 +272,7 @@ class timthumb
         }
         // --- 过滤结束 ---
 
-        if (BLOCK_EXTERNAL_LEECHERS && array_key_exists('HTTP_REFERER', $_SERVER) && (!preg_match('/^https?:\/\/(?:www\.)?' . $this->myHost . '(?:$|\/)/i', $_SERVER['HTTP_REFERER']))) {
+        if (BLOCK_EXTERNAL_LEECHERS && array_key_exists('HTTP_REFERER', $_SERVER) && (!preg_match('/^https?:\/\/(?:www\.)?' . preg_quote($this->myHost, '/') . '(?:$|\/)/i', $_SERVER['HTTP_REFERER']))) {
             // base64 encoded red image that says 'no hotlinkers'
             // nothing to worry about! :)
             $imgData = base64_decode("R0lGODlhUAAMAIAAAP8AAP///yH5BAAHAP8ALAAAAABQAAwAAAJpjI+py+0Po5y0OgAMjjv01YUZ\nOGplhWXfNa6JCLnWkXplrcBmW+spbwvaVr/cDyg7IoFC2KbYVC2NQ5MQ4ZNao9Ynzjl9ScNYpneb\nDULB3RP6JuPuaGfuuV4fumf8PuvqFyhYtjdoeFgAADs=");
@@ -1335,10 +1341,17 @@ class timthumb
             curl_setopt($curl, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/534.30 (KHTML, like Gecko) Chrome/12.0.742.122 Safari/534.30");
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
             curl_setopt($curl, CURLOPT_HEADER, 0);
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, TRUE);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
             curl_setopt($curl, CURLOPT_WRITEFUNCTION, 'timthumb::curlWrite');
             @curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
-            @curl_setopt($curl, CURLOPT_MAXREDIRS, 10);
+            @curl_setopt($curl, CURLOPT_MAXREDIRS, 5);
+            // 仅允许 HTTP(S)，避免重定向到 file/gopher/dict 等协议造成 SSRF/任意文件读取
+            if (defined('CURLPROTO_HTTP') && defined('CURLPROTO_HTTPS')) {
+                $allowedProtocols = CURLPROTO_HTTP | CURLPROTO_HTTPS;
+                @curl_setopt($curl, CURLOPT_PROTOCOLS, $allowedProtocols);
+                @curl_setopt($curl, CURLOPT_REDIR_PROTOCOLS, $allowedProtocols);
+            }
 
             $curlResult = curl_exec($curl);
             fclose(self::$curlFH);

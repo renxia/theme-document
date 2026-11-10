@@ -39,11 +39,11 @@ if ( nicen_theme_showBread() ) {
         现在位置: <a href="/" title="首页">首页</a>
 		<?php if ( ! $no_category ) { ?>
             /
-            <a href="<?php echo $link ?>" title=" <?php echo $category; ?>"> <?php echo $category; ?></a>
+            <a href="<?php echo esc_url( $link ); ?>" title=" <?php echo esc_attr( $category ); ?>"> <?php echo esc_html( $category ); ?></a>
 		<?php }
 		if ( ! $no_tag ) { ?>
             /
-            <a href="<?php echo $linkTag ?>" title=" <?php echo $tags; ?>"> <?php echo $tags; ?></a>
+            <a href="<?php echo esc_url( $linkTag ); ?>" title=" <?php echo esc_attr( $tags ); ?>"> <?php echo esc_html( $tags ); ?></a>
 		<?php } ?>
         / 正文
     </div>
