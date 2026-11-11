@@ -4,8 +4,14 @@ if (window._ts) {
     /* 计算时间差（单位：秒） */
     const timeDiff = currentTime - window._ts;
     /* 判断时间差是否超过 60 秒 */
-    if (timeDiff > 60) {
-        $.post(location.pathname + "?document_view=" + Current, function (res) {
+    if (timeDiff > 60 && window.nicenTheme && typeof Current !== 'undefined') {
+        // 迁移到 admin-ajax.php：显式 action + nonce，后端做频控与校验
+        $.post(window.nicenTheme.ajaxUrl, {
+            action: 'nicen_theme_counter',
+            type: 'view',
+            post_id: Current,
+            nonce: window.nicenTheme.counterNonce
+        }, function (res) {
             // 后端返回 application/json，jQuery 已自动解析为对象；兼容仍为字符串的情况
             const data = (typeof res === 'string') ? JSON.parse(res) : res;
             $(() => {

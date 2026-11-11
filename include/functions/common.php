@@ -1,4 +1,7 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 /*
  * 全局公共函数
@@ -1016,7 +1019,7 @@ function nicen_get_img_timthumb($src, $width, $height, $args = array())
 
 	$src = nicen_theme_img_url( $src );
 
-	/* 地址为空、内联图片，或不是 timthumb 支持的图片类型时直接返回，避免后端对无效路径做无意义的探测 */
+	/* 地址为空、内联图片，或不是图片类型时直接返回 */
 	if ( $src === '' || strpos( $src, 'data:' ) === 0 || ! preg_match( '/\.(png|jpe?g|gif|webp|bmp)(\?.*)?$/i', $src ) ) {
 		return $src;
 	}
@@ -1025,27 +1028,36 @@ function nicen_get_img_timthumb($src, $width, $height, $args = array())
         return $src;
     }
 
-	// 支持伪静态
-    if (nicen_theme_config('document_thumbnail_rewrite', false)) {
-        return home_url() . "/timthumb/w_{$width}/h_{$height}/q_90/zc_1/a_c/" . safe_base64_encode($src) . ".png";
-    }
+	/*
+	 * 使用 WordPress 原生图片尺寸替代 timthumb.php：
+	 * 1) 把本地附件 URL 反查为附件 ID；
+	 * 2) 按请求尺寸映射到已注册的裁剪尺寸，交由 WP 生成缩略图 URL。
+	 * 不再对任意 URL 做服务端抓取/裁剪，从根本上消除 timthumb 的
+	 * SSRF / 任意文件读取 / 命令注入攻击面。
+	 */
+	$size_map = array(
+		'220x140' => 'nicen_card',
+		'78x56'   => 'nicen_thumb',
+	);
+	$key  = intval( $width ) . 'x' . intval( $height );
+	$size = isset( $size_map[ $key ] ) ? $size_map[ $key ] : 'full';
 
-    return get_template_directory_uri() . "/timthumb.php?w={$width}&h={$height}&a=c&zc=1&q=90&src=" . rawurlencode( $src );
-}
+	$attachment_id = function_exists( 'attachment_url_to_postid' )
+		? attachment_url_to_postid( $src ) : 0;
 
-function safe_base64_encode($string)
-{
-    $data = base64_encode($string);
-    return str_replace(array('+', '/', '='), array('-', '_', ''), $data);
-}
+	if ( $attachment_id ) {
+		$thumb = wp_get_attachment_image_url( $attachment_id, $size );
+		if ( $thumb ) {
+			return $thumb;
+		}
+	}
 
-function safe_base64_decode($string){
-    $data = str_replace(array('-','_'),array('+','/'),$string);
-    $mod4 = strlen($data) % 4;
-    if ($mod4) {
-        $data .= substr('====', $mod4);
-    }
-    return base64_decode($data);
+	/*
+	 * 外链 / CDN / 主题内置默认图无法映射为附件：直接返回原图，
+	 * 由前端容器固定尺寸 + object-fit: cover 负责展示（浏览器缩放，不经服务端代理）。
+	 * 旧图片若尚未生成新尺寸，WP 亦会回退到 full，不会显示破图。
+	 */
+	return $src;
 }
 
 

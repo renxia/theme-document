@@ -1,4 +1,7 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 /*
  * 后台主题设置页面，外部文件加载
@@ -43,6 +46,15 @@ function nicen_theme_admin_load_source() {
      * 内联的js代码
      * */
     wp_add_inline_script( "adminjs", vsprintf( 'const THEME_CONFIG=%s;', [ json_encode( $desination_configs ) ] ), 'before' );
+
+    /*
+     * 后台 AJAX 配置：admin-ajax 地址 + 管理接口 nonce。
+     * 管理接口全部仅登录可见，并带 manage_options 权限校验，不再暴露接口密钥。
+     */
+    wp_add_inline_script( "adminjs", 'const NICEN_ADMIN=' . wp_json_encode( array(
+        'ajaxUrl'    => admin_url( 'admin-ajax.php' ),
+        'adminNonce' => wp_create_nonce( 'nicen_theme_admin' ),
+    ) ) . ';', 'before' );
 
 }
 

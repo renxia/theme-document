@@ -1,4 +1,7 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 /*
  * @author 友人a丶
@@ -195,7 +198,7 @@ const ADMIN = [
 						'title'    => '是否启用缩略图伪静态',
 						'callback' => 'nicen_theme_form_switch',
 						'args'     => [
-							'tip' => "若开启此选项，请自行手动在Nginx配置中添加伪静态规则：<code>rewrite ^/timthumb/w_([0-9]+)/h_([0-9]+)/q_([0-9]+)/zc_([0-9])/a_([a-z]+)/([0-9A-Za-z_\-]+)\.([0-9a-z]+)$ /wp-content/themes/theme-document/timthumb.php?w=$1&h=$2&q=$3&zc=$4&a=$5&src=$6;</code>"
+							'tip' => "已弃用：主题改用 WordPress 原生图片尺寸 API 生成缩略图，无需再配置伪静态规则；该开关保留仅为兼容旧配置，开启与否不影响输出。"
 						]
 					],
 					[
@@ -839,8 +842,6 @@ define( "CONFIG", [
 	'document_seo_og'  => 0,
 	"document_baidu"   => '',
 	//百度站长
-	"document_private" => bin2hex( random_bytes( 16 ) ),
-	//初次安装时的接口密钥（32 位密码学随机串，避免使用 time() 这类可预测熵）
 
 	"document_tdk"                   => 1,
 	"document_article_tdk"           => 1,

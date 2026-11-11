@@ -1,3 +1,8 @@
+<?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+?>
 <!--  右边相关信息  -->
 <?php
 /*

@@ -1,4 +1,7 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 //判断阅读数量是否需要增加并进行操作
 if (!function_exists('the_views_add')) {

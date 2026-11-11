@@ -348,13 +348,24 @@ $(function ($) {
                 return;
             }
 
+            if (!window.nicenTheme || typeof Current === 'undefined') {
+                window.toast && toast('页面配置未就绪，请刷新页面', { icon: 'warning' });
+                return;
+            }
             tdStorage.setItem(skey, true);
-            $.post(`/?document_${dingType}=${Current}`).then((res) => {
+            // 迁移到 admin-ajax.php：显式 action + nonce，后端做频控与校验
+            $.post(window.nicenTheme.ajaxUrl, {
+                action: 'nicen_theme_counter',
+                type: dingType,          // 'nice' | 'bad'
+                post_id: Current,
+                nonce: window.nicenTheme.counterNonce
+            }).then((res) => {
                 $(`.post-${dingType} span`).text(res.count || parseInt(that.find('span').text()) + 1);
                 window.toast && toast(`感谢您的支持~`);
             }).catch((err) => {
                 tdStorage.removeItem(skey);
-                window.toast && toast(`${err.message}`, { icon: 'error' });
+                const msg = (err && err.responseJSON && err.responseJSON.errMsg) ? err.responseJSON.errMsg : (err && err.message ? err.message : '请求失败');
+                window.toast && toast(`${msg}`, { icon: 'error' });
             });
         });
     })();

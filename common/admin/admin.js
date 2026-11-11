@@ -278,6 +278,20 @@ let zhCN = {
 };
 
 /*
+* 后台管理接口统一走 admin-ajax.php（POST + nonce + manage_options 权限）
+* 用 application/x-www-form-urlencoded，避免 axios 默认 application/json 时
+* PHP 的 $_REQUEST 取不到 action / nonce。
+* */
+function nicenAdminPost(action) {
+    const body = new URLSearchParams();
+    body.append('action', action);
+    body.append('nonce', NICEN_ADMIN.adminNonce);
+    return axios.post(NICEN_ADMIN.ajaxUrl, body, {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    });
+}
+
+/*
 * 初始化Vue
 * */
 jQuery(function () {
@@ -361,7 +375,7 @@ jQuery(function () {
                     load.loading('正在恢复');
                     that.resuming = true;
                     /* 发起请求 */
-                    axios.get('/?default=1&private=' + that.data.document_private)
+                    nicenAdminPost('nicen_theme_reset_default')
                         .then((res) => {
                             message.info(res.data.result);
                             location.reload();
@@ -392,7 +406,7 @@ jQuery(function () {
                 let that = this;
                 load.confirm("确定提交站点所有URL到百度站长平台吗？", () => {
                     load.loading('正在提交');
-                    axios.get('/?baidu_submit=1&private=' + that.data.document_private)
+                    nicenAdminPost('nicen_theme_baidu_submit')
                         .then((res) => {
                             message.info(res.data.result);
                         }).catch((e) => {
@@ -409,7 +423,7 @@ jQuery(function () {
                 let that = this;
                 load.confirm("确定生成TXT站点地图？", () => {
                     load.loading('正在生成');
-                    axios.get('/?sitemap=1&private=' + that.data.document_private)
+                    nicenAdminPost('nicen_theme_sitemap')
                         .then((res) => {
                             message.info(res.data.result);
                         }).catch((e) => {

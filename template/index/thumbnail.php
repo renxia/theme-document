@@ -1,4 +1,7 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 
 $thumbnail = nicen_theme_getThumbnail(); //是否显示

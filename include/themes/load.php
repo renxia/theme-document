@@ -1,4 +1,7 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 
 /*
@@ -211,5 +214,20 @@ function nicen_theme_load_source() {
  * 前台加载样式和脚本
  * */
 add_action( 'wp_enqueue_scripts', 'nicen_theme_load_source' ); //加载前台资源文件
+
+
+/*
+ * 输出前端 AJAX 配置（在所有业务脚本之前，wp_head 早期执行）。
+ * 使用 wp_add_inline_script 依赖具体句柄在缓存环境下可能丢数据，
+ * 这里直接输出一段内联脚本，保证 view.js / monitor.js 总能拿到配置。
+ */
+function nicen_theme_print_ajax_config() {
+	$config = array(
+		'ajaxUrl'      => admin_url( 'admin-ajax.php' ),
+		'counterNonce' => wp_create_nonce( 'nicen_theme_counter' ),
+	);
+	echo '<script>window.nicenTheme=' . wp_json_encode( $config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ) . ';</script>' . "\n";
+}
+add_action( 'wp_head', 'nicen_theme_print_ajax_config', 1 );
 
 
