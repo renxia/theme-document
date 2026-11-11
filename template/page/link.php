@@ -55,19 +55,32 @@ if (isset($_REQUEST['json'])) {
         isset($_REQUEST['nocache']) && header('Cache-Control: no-cache');
     }
 
-    // 只输出展示所需字段，避免泄露 link_owner / link_rss / link_notes 等内部字段
-    $result = array_map(function ($link) {
-        return [
-            'name'        => $link->link_name,
-            'image'       => $link->link_image,
-            'description' => $link->link_description,
-            'url'         => $link->link_url,
-            'target'      => $link->link_target,
-            'updated'     => $link->link_updated,
-        ];
-    }, $bookmarks);
+    // 兼容历史返回结构：完整 link_* 字段 + link_category（分类 term_id 数组）
+    // 说明：get_bookmarks() 返回的是 wp_links 原始行，本身不含 link_category，
+    // 这里参照 get_bookmark() 的做法补上分类 term_id，供外部按分类消费。
+    $ids     = array_map( 'intval', wp_list_pluck( $bookmarks, 'link_id' ) );
+    $cat_map = array();
 
-    die(wp_json_encode($result));
+    if ( $ids ) {
+        // 一次查回全部分类关系，避免逐条链接 N+1 查询
+        $terms = wp_get_object_terms( $ids, 'link_category', array( 'fields' => 'all_with_object_id' ) );
+        if ( ! is_wp_error( $terms ) ) {
+            foreach ( $terms as $term ) {
+                $cat_map[ (int) $term->object_id ][] = (int) $term->term_id;
+            }
+        }
+    }
+
+    $result = array();
+    foreach ( $bookmarks as $link ) {
+        // 保留数据库返回的全部原有字段（link_id / link_url / link_name / link_rating ...），
+        // 仅补上 link_category，避免再次改变对外契约
+        $item                  = (array) $link;
+        $item['link_category'] = isset( $cat_map[ (int) $link->link_id ] ) ? $cat_map[ (int) $link->link_id ] : array();
+        $result[]              = $item;
+    }
+
+    die( wp_json_encode( $result ) );
 }
 
 get_header();
