@@ -1031,15 +1031,15 @@ function nicen_get_img_timthumb($src, $width, $height, $args = array())
 	/*
 	 * 使用 WordPress 原生图片尺寸替代 timthumb.php：
 	 * 1) 把本地附件 URL 反查为附件 ID；
-	 * 2) 按请求尺寸映射到已注册的裁剪尺寸，交由 WP 生成缩略图 URL；
-	 * 3) 目标尺寸尚未生成时（历史图片未执行过「重新生成缩略图」），
-	 *    退到上传时必生成的 medium / thumbnail，避免整站直接拉原图。
+	 * 2) 直接复用「设置 → 媒体」里的内置尺寸，不再注册自定义尺寸，
+	 *    避免每张图片多生成一份衍生文件；
+	 * 3) 内置尺寸不可用（原图本身小于该尺寸）时回退原图。
 	 * 不再对任意 URL 做服务端抓取/裁剪，从根本上消除 timthumb 的
 	 * SSRF / 任意文件读取 / 命令注入攻击面。
 	 */
 	$size_map = array(
-		'220x140' => array( 'nicen_card', 'medium' ),
-		'78x56'   => array( 'nicen_thumb', 'thumbnail' ),
+		'220x140' => array( 'medium' ),    // 后台「设置 → 媒体」中的中等尺寸
+		'78x56'   => array( 'thumbnail' ), // 后台「设置 → 媒体」中的缩略图尺寸
 	);
 	$key   = intval( $width ) . 'x' . intval( $height );
 	$sizes = isset( $size_map[ $key ] ) ? $size_map[ $key ] : array( 'full' );

@@ -4,7 +4,7 @@
  *
  * 主题缩略图已改用 WordPress 原生图片尺寸 API：
  *   - include/functions/common.php::nicen_get_img_timthumb
- *   - include/functions/initialize.php 注册的 nicen_card(220x140) / nicen_thumb(78x56)
+ *   - 尺寸复用 WordPress 内置的 medium / thumbnail（设置 → 媒体）
  * 主题不再生成任何指向本文件的 URL，旧的动态裁剪逻辑（含 shell_exec / 远程抓取，
  * 历史上有 SSRF、任意文件读取、命令注入漏洞）已整体移除以消除攻击面。
  *

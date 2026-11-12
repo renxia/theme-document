@@ -27,13 +27,9 @@ show_admin_bar( false );
 add_theme_support( 'post-thumbnails' ); //开启主题缩略图
 
 /*
- * 主题使用的缩略图尺寸（替代 timthumb.php 动态裁剪）。
- * 注册后由 WordPress 在上传时生成裁剪图；旧附件可用「重新生成缩略图」补齐。
+ * 缩略图直接复用 WordPress 内置尺寸（设置 → 媒体：medium / thumbnail），
+ * 不额外注册自定义尺寸，避免为每张图片多生成衍生文件。
  */
-add_action( 'after_setup_theme', function () {
-	add_image_size( 'nicen_card', 220, 140, true );  // 文章卡片缩略图
-	add_image_size( 'nicen_thumb', 78, 56, true );   // 侧栏小图
-} );
 
 add_theme_support( 'menus' ); //开启主题菜单功能
 add_theme_support( 'widgets' ); //开启自定义侧边栏
