@@ -227,6 +227,20 @@ wordpress自带的邮件发送服务不太友好，你可以在主题选项开�
 2. 评论回复通知被回复评论的用户
 3. 评论审核通知通知发布评论的用户
 
+## 7.文章缩略图
+
+主题使用 WordPress 原生图片尺寸生成缩略图（文章卡片 220×140、侧栏小图 78×56），不再在服务端实时裁剪图片。
+
+新上传的图片会自动生成这两个尺寸；**已存在的历史图片需要重新生成一次**，否则会退回到 WordPress 自带的 medium / thumbnail（再兜底才是原图）：
+
+```bash
+wp media regenerate --image_size=nicen_card --image_size=nicen_thumb
+```
+
+没有 WP-CLI 时，安装并运行「Regenerate Thumbnails」插件，在【工具 → Regenerate Thumbnails】中选择这两个尺寸重新生成。
+
+外链图片、正文里引用的非媒体库图片、主题内置的 default.png 无法映射成附件，仍直接使用原地址，由前端固定尺寸容器配合 object-fit: cover 展示。
+
 # 2022-10-14
 
 1. 新增首页文章导航

@@ -1031,31 +1031,34 @@ function nicen_get_img_timthumb($src, $width, $height, $args = array())
 	/*
 	 * 使用 WordPress 原生图片尺寸替代 timthumb.php：
 	 * 1) 把本地附件 URL 反查为附件 ID；
-	 * 2) 按请求尺寸映射到已注册的裁剪尺寸，交由 WP 生成缩略图 URL。
+	 * 2) 按请求尺寸映射到已注册的裁剪尺寸，交由 WP 生成缩略图 URL；
+	 * 3) 目标尺寸尚未生成时（历史图片未执行过「重新生成缩略图」），
+	 *    退到上传时必生成的 medium / thumbnail，避免整站直接拉原图。
 	 * 不再对任意 URL 做服务端抓取/裁剪，从根本上消除 timthumb 的
 	 * SSRF / 任意文件读取 / 命令注入攻击面。
 	 */
 	$size_map = array(
-		'220x140' => 'nicen_card',
-		'78x56'   => 'nicen_thumb',
+		'220x140' => array( 'nicen_card', 'medium' ),
+		'78x56'   => array( 'nicen_thumb', 'thumbnail' ),
 	);
-	$key  = intval( $width ) . 'x' . intval( $height );
-	$size = isset( $size_map[ $key ] ) ? $size_map[ $key ] : 'full';
+	$key   = intval( $width ) . 'x' . intval( $height );
+	$sizes = isset( $size_map[ $key ] ) ? $size_map[ $key ] : array( 'full' );
 
 	$attachment_id = function_exists( 'attachment_url_to_postid' )
 		? attachment_url_to_postid( $src ) : 0;
 
 	if ( $attachment_id ) {
-		$thumb = wp_get_attachment_image_url( $attachment_id, $size );
-		if ( $thumb ) {
-			return $thumb;
+		foreach ( $sizes as $size ) {
+			$thumb = wp_get_attachment_image_url( $attachment_id, $size );
+			if ( $thumb ) {
+				return $thumb;
+			}
 		}
 	}
 
 	/*
 	 * 外链 / CDN / 主题内置默认图无法映射为附件：直接返回原图，
 	 * 由前端容器固定尺寸 + object-fit: cover 负责展示（浏览器缩放，不经服务端代理）。
-	 * 旧图片若尚未生成新尺寸，WP 亦会回退到 full，不会显示破图。
 	 */
 	return $src;
 }
