@@ -140,7 +140,7 @@ const TD = {
   async init() {
     $(function () {
         TD.onReady();
-    })();
+    });
   }
 };
 
